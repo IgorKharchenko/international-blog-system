@@ -55,9 +55,10 @@ class UsersController extends Controller
      */
     public function actionView($id)
     {
-        if(!Yii::$app->user->isGuest && Yii::$app->user->can('updateOwnUser', ['user' =>  $this->findModel($id)])) {
+        $model = $this->findModel($id);
+        if(!Yii::$app->user->isGuest && $model->checkUDPrivilegies($model)) {
             return $this->render('view', [
-                'model' => $this->findModel($id),
+                'model' => $model,
             ]);
         } else {
             return $this->redirect('@app/views/site/login.php');
@@ -90,8 +91,8 @@ class UsersController extends Controller
      */
     public function actionUpdate($id)
     {
-        if(!Yii::$app->user->isGuest && (Yii::$app->user->can('updateUser') || Yii::$app->user->can('updateOwnUser', ['user' => $this->findModel($id)]) )) {
-            $model = $this->findModel($id);
+        $model = $this->findModel($id);
+        if(!Yii::$app->user->isGuest &&  $model->checkUDPrivilegies($model)) {
 
             if ($model->load(Yii::$app->request->post())) {
                 $model->updated_at = time();
@@ -115,8 +116,9 @@ class UsersController extends Controller
      */
     public function actionDelete($id)
     {
-        if(!Yii::$app->user->isGuest && (Yii::$app->user->can('deleteUser') || Yii::$app->user->can('deleteOwnUser', ['user' => $this->findModel($id)]) )) {
-            $this->findModel($id)->delete();
+        $model = $this->findModel($id);
+        if(!Yii::$app->user->isGuest && $model->checkUDPrivilegies($model)) {
+            $model->delete();
 
             return $this->redirect(['index']);
         } else {

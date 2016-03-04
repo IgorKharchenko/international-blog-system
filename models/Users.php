@@ -57,4 +57,15 @@ class Users extends \yii\db\ActiveRecord
             'updated_at' => 'Updated At',
         ];
     }
+
+    /**
+     * Checks if user has Update/Delete Post privilegies
+     * @param $model
+     * @return bool
+     */
+    public function checkUDPrivilegies($model)
+    {
+        return ((Yii::$app->user->can('updateUser') && Yii::$app->user->can('deleteUser'))
+            || (Yii::$app->user->can('updateOwnUser', ['user' => $model]) && Yii::$app->user->can('deleteOwnUser', ['user' => $model]) ));
+    }
 }

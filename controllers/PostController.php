@@ -36,35 +36,24 @@ class PostController extends Controller
      */
     public function actionIndex()
     {
-        $model = new Post;
         $query = Post::find();
 
         $pagination = new Pagination([
             'defaultPageSize' => 5,
-            'totalCount' => $query->count(),
+            'totalCount' => $query
+                        ->where('publish_status=:publish', [':publish' => 'publish'])
+                        ->count(),
         ]);
+
         $posts = $query
             ->where('publish_status=:publish', [':publish' => 'publish'])
             ->orderBy('publish_date')
             ->offset($pagination->offset)
             ->limit($pagination->limit)
             ->all();
-        $users = User::find()
-            ->where(['id' => [$posts->author_id]])
-            ->all();
-
-        $comments_count = Comment::find()
-            ->where(['post_id' => $model->id])
-            ->orderBy('publish_date')
-            ->offset($pagination->offset)
-            ->limit($pagination->limit)
-            ->count();
 
         return $this->render('@app/views/post/index.php',[
-            'model' => $model,
             'posts' => $posts,
-            'users' => $users,
-            'comments_count' => $comments_count,
             'pagination' => $pagination,
         ]);
     }
@@ -77,44 +66,36 @@ class PostController extends Controller
     public function actionView($id)
     {
         $model = $this->findModel($id);
-        $query = Comment::find();
 
-        $pagination = new Pagination([
-            'defaultPageSize' => 5,
-            'totalCount' => $query->count(),
-        ]);
-
+        // find all comments with [comment.post_id == post.id]
         $comment_model = new Comment;
-        $comments = $query
-            ->where(['post_id' => $id])
-            ->orderBy('publish_date')
-            ->offset($pagination->offset)
-            ->limit($pagination->limit)
-            ->all();
-        $comments_count = $query->count();
+        $comment_query = Comment::find()
+            ->where(['post_id' => $id]);
 
-        # find all users which ID equals to post author ID
-        # First: SELECT author_id FROM post WHERE id=$id
-        # Second: SELECT * FROM user WHERE id=$author_id
-        $author_id = Post::find()
-            ->select('author_id')
-            ->where('id=:post_id', [':post_id' => $id])
-            ->one();
-        $user_model = User::find()
-            ->where('id=:author_id', ['author_id' => $author_id->author_id])
-            ->one();
+        $comments_pagination = new Pagination([
+            'defaultPageSize' => 5,
+            'totalCount' => $comment_query->count(),
+        ]);
+        $comments = $comment_model->getPostComments($id, $comments_pagination);
+        $comments_count = $comment_query->count();
+
+        $tmp_post = new Post();
+            $post_author = $tmp_post->findAuthorUsername($id); // find author username
+            $hasPrivilegies_Post = $tmp_post->checkUDPrivilegies($model); // check user permissions
+        unset($tmp_post);
 
         # if comment is loaded
-        if ($comment_model->load(Yii::$app->request->post()) && $comment_model->save()) {
+        if ($comment_model->load(Yii::$app->request->post())) {
+            $comment_model->getData();
             return $this->redirect(['view','id' => $id]);
         } else {
             return $this->render('view', [
                 'model' => $model,
-                'comment_model' => $comment_model,
+                'post_author' => $post_author,
+                'hasPrivilegies_Post' => $hasPrivilegies_Post,
                 'comments' => $comments,
                 'comments_count' => $comments_count,
-                'author_model' => $user_model,
-                'pagination' => $pagination,
+                'comments_pagination' => $comments_pagination,
             ]);
         }
     }
@@ -129,25 +110,23 @@ class PostController extends Controller
         $model = new Post;
         $query = Post::find();
 
-        $pagination = new Pagination([
-            'defaultPageSize' => 5,
-            'totalCount' => $query->count(),
-        ]);
-
         if($status == 'all') {
             $posts = $query
-                ->where('author_id=:author_id', [':author_id' => Yii::$app->user->id])
-                ->all();
+                ->where('author_id=:author_id', [':author_id' => Yii::$app->user->id]);
         } else {
             $posts = $query
                 ->where('publish_status=:status', [':status' => $status])
-                ->andWhere('author_id=:author_id', [':author_id' => Yii::$app->user->id])
-                ->all();
+                ->andWhere('author_id=:author_id', [':author_id' => Yii::$app->user->id]);
         }
+        $pagination = new Pagination([
+            'defaultPageSize' => 5,
+            'totalCount' => $posts->count(),
+        ]);
+
 
         return $this->render('ourPosts', [
             'model' => $model,
-            'posts' => $posts,
+            'posts' => $posts->all(),
             'pagination' => $pagination,
         ]);
     }
@@ -159,17 +138,13 @@ class PostController extends Controller
      */
     public function actionCreate()
     {
-        if(\Yii::$app->user->can('createPost')) {
+        $model = new Post();
 
-            $model = new Post();
-
+        if($model->checkCPrivilegies()) {
             if ($model->load(\Yii::$app->request->post())) {
-
-                $model->save();
-
+                $model->getPostData();
                 return $this->redirect(['index', 'id' => $model->id]);
             } else {
-                $model->author_id = Yii::$app->user->id;
                 return $this->render('create', [
                     'model' => $model,
                 ]);
@@ -188,7 +163,7 @@ class PostController extends Controller
     {
         $model = $this->findModel($id);
         // If this is an author or an admin
-        if(Yii::$app->user->can('updateOwnPost', ['post' => $model]) || Yii::$app->user->can('updatePost', ['post' => $model])  ) {
+        if($model->checkUDPrivilegies($model)) {
 
             if ($model->load(Yii::$app->request->post()) && $model->save()) {
                 return $this->redirect(['view', 'id' => $model->id]);
@@ -213,8 +188,8 @@ class PostController extends Controller
     {
         $model = $this->findModel($id);
         // If this is an author or an admin
-        if(Yii::$app->user->can('deletePost', ['post' => $model]) || Yii::$app->user->can('deleteOwnPost', ['post' => $model])  ) {
-
+        if($model->checkUDPrivilegies($model)) {
+            Comment::deleteAll('post_id=:post_id', [':post_id' => $id]);
             $model->delete();
             return $this->redirect(['index']);
         } else {

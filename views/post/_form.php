@@ -26,10 +26,6 @@ use dosamigos\ckeditor\CKEditor;
 
     <?= $form->field($model, 'publish_status')->dropDownList([ 'draft' => 'Draft', 'publish' => 'Publish', ], ['prompt' => '']) ?>
 
-    <?= $form->field($model, 'author_id')->textInput(['readonly' => true, 'value' => $model->author_id,'maxlength' => true]) ?>
-
-    <?= $form->field($model, 'publish_date')->textInput(['readonly' => true, 'value' => time()]) ?>
-
     <div class="form-group">
         <?= Html::submitButton($model->isNewRecord ? 'Create' : 'Update', ['class' => $model->isNewRecord ? 'btn btn-success' : 'btn btn-primary']) ?>
     </div>

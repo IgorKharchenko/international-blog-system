@@ -6,6 +6,7 @@ use yii\base\NotSupportedException;
 use yii\behaviors\TimestampBehavior;
 use yii\db\ActiveRecord;
 use yii\web\IdentityInterface;
+use yii\helpers\ArrayHelper;
 
 /**
  * User model
@@ -79,6 +80,30 @@ class User extends ActiveRecord implements IdentityInterface
     }
 
     /**
+     * Finds if there are any admins in the blog
+     * @return bool
+     */
+    public function alreadyHasAdmins()
+    {
+        $auth = Yii::$app->authManager;
+        # Checks if there are any admins in the blog
+        $getAlreadyHasAdmins = $auth->getUserIdsByRole('admin');
+        return empty($getAlreadyHasAdmins) ? $alreadyHasAdmins = false : $alreadyHasAdmins = true;
+    }
+
+    /**
+     * Finds if current user is an admin
+     * @return bool
+     */
+    public function isAdmin()
+    {
+        $auth = Yii::$app->authManager;
+        # Checks if user have an admin rights
+        $getIsAdmin = $auth->getRolesByUser(Yii::$app->user->id);
+        return (ArrayHelper::getValue($getIsAdmin, 'admin')) ? true : false;
+    }
+
+    /**
      * Finds identity by user id, his status must be active
      * @inheritdoc
      */
@@ -145,14 +170,6 @@ class User extends ActiveRecord implements IdentityInterface
     public function getId()
     {
         return $this->getPrimaryKey();
-    }
-
-    /**
-     * Returns primary key during signup
-     */
-    public function getSignupId()
-    {
-        return is_null($this->getPrimaryKey()) ? $this->id=1 : $this->getPrimaryKey();
     }
 
     /**

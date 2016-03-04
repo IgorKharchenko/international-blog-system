@@ -27,21 +27,6 @@ class CommentController extends Controller
     }
 
     /**
-     * Lists all Comment models.
-     * @return mixed
-     */
-    public function actionIndex()
-    {
-        $dataProvider = new ActiveDataProvider([
-            'query' => Comment::find(),
-        ]);
-
-        return $this->render('index', [
-            'dataProvider' => $dataProvider,
-        ]);
-    }
-
-    /**
      * Displays a single Comment model.
      * @param string $id
      * @return mixed
@@ -61,20 +46,21 @@ class CommentController extends Controller
     public function actionCreate()
     {
         $model = new Comment();
-
-        if ($model->load(Yii::$app->request->post())) {
-            $com = $model->getData();
-            $model->save();
-            return $this->redirect(['post\view', 'id' => $model->id]);
+        if($model->checkCPrivilegies()) {
+            if ($model->load(Yii::$app->request->post()) && $model->save()) {
+                return $this->redirect(['post\view', 'id' => $model->id]);
+            } else {
+                return $this->render('create', [
+                    'model' => $model,
+                ]);
+            }
         } else {
-            return $this->render('create', [
-                'model' => $model,
-            ]);
+            return $this->redirect('@app/views/site/login.php');
         }
     }
 
     /**
-     * Updates an existing Comment model.
+     * Updates an existing Comment.
      * If update is successful, the browser will be redirected to the 'view' page.
      * @param string $id
      * @return mixed
@@ -82,13 +68,16 @@ class CommentController extends Controller
     public function actionUpdate($id, $post_id=null)
     {
         $model = $this->findModel($id);
-
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            return $this->redirect(['post/view', 'id' => $post_id]);
+        if($model->checkUDPrivilegies($model)) {
+            if ($model->load(Yii::$app->request->post()) && $model->save()) {
+                return $this->redirect(['post/view', 'id' => $post_id]);
+            } else {
+                return $this->render('update', [
+                    'model' => $model,
+                ]);
+            }
         } else {
-            return $this->render('update', [
-                'model' => $model,
-            ]);
+            return $this->redirect('@app/views/site/login.php');
         }
     }
 
@@ -100,9 +89,13 @@ class CommentController extends Controller
      */
     public function actionDelete($id, $post_id=null)
     {
-        $this->findModel($id)->delete();
-
-        return $this->redirect(['post/view', 'id' => $post_id]);
+        $model = $this->findModel($id);
+        if($model->checkUDPrivilegies($model)) {
+            $model->delete();
+            return $this->redirect(['post/view', 'id' => $post_id]);
+        } else {
+            return $this->redirect('@app/views/site/login.php');
+        }
     }
 
     /**

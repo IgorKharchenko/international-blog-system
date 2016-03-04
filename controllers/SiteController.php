@@ -59,7 +59,9 @@ class SiteController extends Controller
 
         $pagination = new Pagination([
             'defaultPageSize' => 5,
-            'totalCount' => $query->count(),
+            'totalCount' => $query
+                ->where('publish_status=:publish', [':publish' => 'publish'])
+                ->count(),
         ]);
         $posts = $query
             ->where('publish_status=:publish', [':publish' => 'publish'])
@@ -112,6 +114,9 @@ class SiteController extends Controller
                 'model' => $model,
             ]);
         }
+        return $this->render('login', [
+            'model' => new LoginForm(),
+        ]);
     }
 
     /**
@@ -124,13 +129,9 @@ class SiteController extends Controller
     public function actionAdmin()
     {
         $model = new User;
-        $auth = Yii::$app->authManager;
-        # Checks if there are any admins in the blog
-        $getAlreadyHasAdmins = $auth->getUserIdsByRole('admin');
-        empty($getAlreadyHasAdmins) ? $alreadyHasAdmins = false : $alreadyHasAdmins = true;
-        # Checks if user have an admin rights
-        $getIsAdmin = $auth->getRolesByUser(Yii::$app->user->id);
-        $isAdmin = (ArrayHelper::getValue($getIsAdmin, 'admin')) ? true : false;
+        $isAdmin = $model->isAdmin();
+        $alreadyHasAdmins = $model->alreadyHasAdmins();
+
         # True if we DON'T have any admins or current user is an admin
         if(!Yii::$app->user->isGuest) {
             if(!$alreadyHasAdmins || $isAdmin) {

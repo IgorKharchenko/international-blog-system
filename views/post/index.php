@@ -18,19 +18,14 @@ $this->params['breadcrumbs'][] = $this->title;
     <br/>
     <?php foreach($posts as $post): ?>
 
-        <?php $author_id = Post::find()
-        ->select('author_id')
-        ->where('id=:post_id', [':post_id' => $post->id])
-        ->one();
-        $user_model = User::find()
-        ->where('id=:author_id', ['author_id' => $author_id->author_id])
-        ->one();
-        $comments_count = Comment::find()
-            ->where(['post_id' => $post->id])
-            ->orderBy('publish_date')
-            ->offset($pagination->offset)
-            ->limit($pagination->limit)
-            ->count();
+        <?php $tmp_user = new Post;
+                $user_model = $tmp_user->findAuthorUsername($post->id);
+                $hasPrivilegies_Post = $tmp_user->checkUDPrivilegies($post);
+              unset($tmp_user);
+
+              $tmp_comment = new Comment;
+                $comments_count = $tmp_comment->commentsCount($post->id, $pagination);
+              unset($tmp_comment);
         ?>
 
         <h4><?= Html::a("{$post->title}", ['post/view', 'id' => $post->id]) ?></h4>
@@ -42,8 +37,7 @@ $this->params['breadcrumbs'][] = $this->title;
                 |  <?= Icon::show('calendar') . $formatter->asDatetime($post->publish_date) ?>
                 |  <?= Icon::show('comment') . $comments_count ?>
                 <!-- Buttons -->
-                <?php if((Yii::$app->user->can('updatePost') && Yii::$app->user->can('deletePost'))
-                    || (Yii::$app->user->can('updateOwnPost', ['post' => $post]) && Yii::$app->user->can('deleteOwnPost', ['post' => $post]) )): ?>
+                <?php if($hasPrivilegies_Post): ?>
 
                     <?= Html::a('Update', ['post/update', 'id' => $post->id], ['class' => 'btn-xs btn-info']) ?>
                 <?php endif; ?>

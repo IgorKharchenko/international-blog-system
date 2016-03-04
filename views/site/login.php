@@ -43,7 +43,7 @@ $this->params['breadcrumbs'][] = $this->title;
 
     <?= Alert::widget([
         'options' => ['class' => 'alert-success'],
-        'body' => 'You can login with <b>Admin</b>, <b>User001</b>, <b>User002</b> nickname with <b>asdffdsa</b> password.',
+        'body' => 'You can login with <b>Admin</b>, <b>Mikhail Lavrentiev</b>, <b>Nicolay</b> nickname with <b>asdffdsa</b> password.',
     ]); ?>
 
 </div>

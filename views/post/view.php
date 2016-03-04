@@ -20,13 +20,13 @@ $this->params['breadcrumbs'][] = $this->title;
 
     <?php $formatter = Yii::$app->formatter; ?>
     </br></br>
-    <h5><i>
-            <?= Icon::show('user') . $author_model->username ?>
-            |  <?= Icon::show('calendar') . $formatter->asDatetime($model->publish_date) ?>
-            |         <!-- Buttons -->
-            <?php if((Yii::$app->user->can('updatePost') && Yii::$app->user->can('deletePost'))
-            || (Yii::$app->user->can('updateOwnPost', ['post' => $model]) && Yii::$app->user->can('deleteOwnPost', ['post' => $model]) )): ?>
+    <h5>
+            <b><?= Icon::show('user') . $post_author->username ?></b>
+            |  <i><?= Icon::show('calendar') . $formatter->asDatetime($model->publish_date) ?></i>
 
+            <!-- Buttons -->
+            <?php if($hasPrivilegies_Post): ?>
+                |
                 <?= Html::a('Update', ['update', 'id' => $model->id], ['class' => 'btn-xs btn-info']) ?>
                 <?= Html::a('Delete', ['delete', 'id' => $model->id], [
                     'class' => 'btn-xs btn-danger',
@@ -39,29 +39,22 @@ $this->params['breadcrumbs'][] = $this->title;
             <!-- End Buttons -->
 
 
-    </i></h5>
+    </h5>
 </div> <hr>
 
 <div class="comment-view">
     <h2>Comments (<?= $comments_count ?>)</h2>
     <?php foreach($comments as $comment): ?>
 
-        <?php $author_id = Comment::find()
-            ->select('author_id')
-            ->where('id=:comment_id', [':comment_id' => $comment->id])
-            ->one();
-        $user_model = User::find()
-            ->where('id=:author_id', ['author_id' => $author_id->author_id])
-            ->one();
-        ?>
-
-
+        <?php $tmp_comment = new Comment;
+                $comment_author = $tmp_comment->findAuthorUsername($comment->id);
+                $hasPrivilegies_Comment = $tmp_comment->checkUDPrivilegies($comment);
+              unset($tmp_comment); ?>
+        <hr/>
         <h5>
-            <hr>
-            <?= Icon::show('user') . $user_model->username ?>
+            <?= Icon::show('user') . Html::a($comment_author->username, ['users/view', 'id' => $comment_author->id]) ?>
             |  <?= Icon::show('calendar') . $formatter->asDatetime($comment->publish_date) ?>
-            <?php if((Yii::$app->user->can('updateComment') && Yii::$app->user->can('deleteComment'))
-                || (Yii::$app->user->can('updateOwnComment', ['post' => $comment]) && Yii::$app->user->can('deleteOwnComment', ['post' => $comment]) )): ?>
+            <?php if($hasPrivilegies_Comment): ?>
 
                 <?= Html::a('Update', ['comment/update', 'id' => $comment->id, 'post_id' => $model->id,], ['class' => 'btn-xs btn-info']); ?>
                 <?= Html::a('Delete', ['comment/delete', 'id' => $comment->id, 'post_id' => $model->id], [
@@ -80,14 +73,14 @@ $this->params['breadcrumbs'][] = $this->title;
         </h5>
     <?php endforeach; ?>
     </br>
-    <?= LinkPager::widget(['pagination' => $pagination]) ?>
+    <?= LinkPager::widget(['pagination' => $comments_pagination]) ?>
 </div> <hr>
 
 <div class="comment-create">
     <?php if(!Yii::$app->user->isGuest): ?>
         <h2>Leave a comment</h2></br>
         <?= $this->render('@app/views/comment/_form.php', [
-            'model' => $comment_model,
-        ], compact('models')) ?>
+            'model' => new Comment(),
+        ]) ?>
     <?php endif; ?>
 </div>

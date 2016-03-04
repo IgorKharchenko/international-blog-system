@@ -5,6 +5,7 @@ use yii\widgets\DetailView;
 use yii\db\Query;
 use yii\widgets\LinkPager;
 use yii\bootstrap\Alert;
+use app\models\Post;
 use kartik\icons\Icon;
 
 /* @var $this yii\web\View */
@@ -30,8 +31,8 @@ $this->params['breadcrumbs'][] = "Our Post Overview";
         <h6>Publish Status: <b><?= Html::encode("{$post->publish_status}") . "ed" ?></b></h6>
 
         <!-- Buttons -->
-        <?php if((Yii::$app->user->can('updatePost') && Yii::$app->user->can('deletePost'))
-            || (Yii::$app->user->can('updateOwnPost', ['post' => $post]) && Yii::$app->user->can('deleteOwnPost', ['post' => $post]) )): ?>
+        <?php $hasPrivilegies_Post = $model->checkUDPrivilegies($post); ?>
+        <?php if($hasPrivilegies_Post): ?>
 
             <?= Html::a('Update', ['update', 'id' => $post->id], ['class' => 'btn-xs btn-info']) ?>
             <?= Html::a('Delete', ['delete', 'id' => $post->id], [

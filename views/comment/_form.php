@@ -30,14 +30,6 @@ use dosamigos\ckeditor\CKEditor;
         'preset' => 'basic',
     ]) ?>
 
-    <?= $form->field($model, 'id')->textInput(['readonly' => true, 'value' => isset($_GET['post_id']) ? $model->getId() : $model->getNewId(), 'maxlength' => true]) ?>
-
-    <?= $form->field($model, 'post_id')->textInput(['readonly' => true, 'value' => isset($_GET['post_id']) ? ($_GET['post_id']) : ($_GET['id'])  ]) ?>
-
-    <?= $form->field($model, 'author_id')->textInput(['readonly' => true, 'value' => isset($_GET['post_id']) ? $model->author_id : Yii::$app->user->id, 'maxlength' => true]) ?>
-
-    <?= $form->field($model, 'publish_date')->textInput(['readonly' => true, 'value' => time()]) ?>
-
     <div class="form-group">
         <?= Html::submitButton($model->isNewRecord ? 'Create' : 'Update', ['class' => $model->isNewRecord ? 'btn btn-success' : 'btn btn-primary']) ?>
     </div>
