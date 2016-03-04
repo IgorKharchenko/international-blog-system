@@ -6,6 +6,7 @@
 
 use yii\helpers\Html;
 use yii\bootstrap\ActiveForm;
+use yii\bootstrap\Alert;
 
 $this->title = 'Login';
 $this->params['breadcrumbs'][] = $this->title;
@@ -39,4 +40,10 @@ $this->params['breadcrumbs'][] = $this->title;
         </div>
 
     <?php ActiveForm::end(); ?>
+
+    <?= Alert::widget([
+        'options' => ['class' => 'alert-success'],
+        'body' => 'You can login by <b>Admin</b>, <b>User001</b>, <b>User002</b> nickname with <b>asdffdsa</b> password.',
+    ]); ?>
+
 </div>
