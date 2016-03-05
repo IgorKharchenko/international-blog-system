@@ -25,15 +25,21 @@ $this->params['breadcrumbs'][] = "Our Post Overview";
     <?php endif; ?>
     <?php Icon::map($this); ?>
     <?php foreach($posts as $post): ?>
-        <h2><?= Html::a("{$post->title}", ['post/view', 'id' => $post->id]) ?></h2>
+        <h4><?= Html::a("{$post->title}", ['post/view', 'id' => $post->id]) ?></h4>
+        <h6><?= Html::encode("{$post->anons}") ?></h6>
 
-        <h4><?= Html::encode("{$post->anons}") ?></h4>
-        <h6>Publish Status: <b><?= Html::encode("{$post->publish_status}") . "ed" ?></b></h6>
+        <?php
+            $formatter = Yii::$app->formatter;
+            $tmp_post = new Post;
+                $post_author = $tmp_post->findAuthorUsername($post->id); // finds author username
+            unset($tmp_post);
+        ?>
+
+        <b><?= Icon::show('user') . $post_author->username ?></b>
+        |  <i><?= Icon::show('calendar') . $formatter->asDatetime($post->publish_date) ?></i>
+        | Publish Status: <b><?= Html::encode("{$post->publish_status}") . "ed" ?> | </b>
 
         <!-- Buttons -->
-        <?php $hasPrivilegies_Post = $model->checkUDPrivilegies($post); ?>
-        <?php if($hasPrivilegies_Post): ?>
-
             <?= Html::a('Update', ['update', 'id' => $post->id], ['class' => 'btn-xs btn-info']) ?>
             <?= Html::a('Delete', ['delete', 'id' => $post->id], [
                 'class' => 'btn-xs btn-danger',
@@ -43,11 +49,7 @@ $this->params['breadcrumbs'][] = "Our Post Overview";
                 ],
             ]) ?>
             <!-- End Buttons -->
-
-
-        <?php endif; ?>
-
-        </br>
+        <br/> <hr/>
     <?php endforeach; ?>
 
 

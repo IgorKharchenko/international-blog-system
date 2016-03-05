@@ -55,7 +55,7 @@ $this->params['breadcrumbs'][] = $this->title;
             <?= Icon::show('user') . Html::a($comment_author->username, ['users/view', 'id' => $comment_author->id]) ?>
             |  <?= Icon::show('calendar') . $formatter->asDatetime($comment->publish_date) ?>
             <?php if($hasPrivilegies_Comment): ?>
-
+                |
                 <?= Html::a('Update', ['comment/update', 'id' => $comment->id, 'post_id' => $model->id,], ['class' => 'btn-xs btn-info']); ?>
                 <?= Html::a('Delete', ['comment/delete', 'id' => $comment->id, 'post_id' => $model->id], [
                     'class' => 'btn-xs btn-danger',

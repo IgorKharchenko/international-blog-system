@@ -119,7 +119,6 @@ class UsersController extends Controller
         $model = $this->findModel($id);
         if(!Yii::$app->user->isGuest && $model->checkUDPrivilegies($model)) {
             $model->delete();
-
             return $this->redirect(['index']);
         } else {
             return $this->redirect('@app/views/site/login.php');
@@ -134,12 +133,8 @@ class UsersController extends Controller
     {
         $model = new User;
         $auth = Yii::$app->authManager;
-        # Checks if there are any admins in the blog
-        $getAlreadyHasAdmins = $auth->getUserIdsByRole('admin');
-        empty($getAlreadyHasAdmins) ? $alreadyHasAdmins = false : $alreadyHasAdmins = true;
-        # Checks if user have an admin rights
-        $getIsAdmin = $auth->getRolesByUser(Yii::$app->user->id);
-        $isAdmin = (ArrayHelper::getValue($getIsAdmin, 'admin')) ? true : false;
+        $alreadyHasAdmins = $model->alreadyHasAdmins();
+        $isAdmin = $model->isAdmin();
         # True if we DON'T have any admins or current user is an admin
         if(!Yii::$app->user->isGuest && (!$alreadyHasAdmins || $isAdmin)) {
 
@@ -158,28 +153,13 @@ class UsersController extends Controller
                 ]);
             } else {
                 if($id != null) {
-                    $authorRole = $auth->getRole('author');
-                    $adminRole = $auth->getRole('admin');
-                    $getRoles = $auth->getRolesByUser($id);
-                    if($role != null) {
-                        if($role == 'admin') {
-                            if(ArrayHelper::getValue($getRoles, 'author'))
-                                $auth->revoke($authorRole, $id);
-                            if(ArrayHelper::getValue($getRoles, 'admin') == null)
-                                $auth->assign($adminRole, $id);
-                        } elseif($role == 'author') {
-                            if(ArrayHelper::getValue($getRoles, 'admin'))
-                                $auth->revoke($adminRole, $id);
-                            if(ArrayHelper::getValue($getRoles, 'author') == null)
-                                $auth->assign($authorRole, $id);
-                        }
-                    }
+                    $model->setRole($id, $role);
                     return $this->render('assign', [
                         'dataProvider' => $dataProvider,
                         'model' => $model,
                         'modelIsNull' => false,
                         'pagination' => $pagination,
-                        'assignRole' => ($role=='admin') ? 'Administrator' : 'Author',
+                        'setRole' => ($role=='admin') ? 'Administrator' : 'Author',
                     ]);
                 } else {
                     return $this->render('assign', [

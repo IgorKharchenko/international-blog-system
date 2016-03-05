@@ -7,6 +7,7 @@ use app\models\Post;
 use app\models\Comment;
 use app\models\User;
 use yii\data\ActiveDataProvider;
+use yii\helpers\ArrayHelper;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
@@ -36,26 +37,44 @@ class PostController extends Controller
      */
     public function actionIndex()
     {
+        $model = new Post;
         $query = Post::find();
 
         $pagination = new Pagination([
             'defaultPageSize' => 5,
             'totalCount' => $query
-                        ->where('publish_status=:publish', [':publish' => 'publish'])
+                        ->where('publish_status=:publish_status', [':publish_status' => 'publish'])
                         ->count(),
         ]);
 
-        $posts = $query
-            ->where('publish_status=:publish', [':publish' => 'publish'])
-            ->orderBy('publish_date')
+        # Firstly we find all displayed posts
+        $posts = $query->where('publish_status=:publish_status', [':publish_status' => 'publish'])
+            ->offset($pagination->offset)
+            ->limit($pagination->limit)
+            ->all();
+        //return print_r($posts);
+
+        # Secondly we need to count all author_id's of displayed posts
+        $tmp_array = Array();
+        foreach($posts as $post)
+        {
+            array_push($tmp_array, $post->author_id);
+        }
+        //return print_r($tmp_array);
+
+        # Thirdly we need to use this array to provide the username in the query
+        return $posts_d = $query
+            //->where('publish_status=:publish_status', [':publish_status' => 'publish'])
+            ->innerJoin('user', ['post.author_id' => 'user.id'])
+            ->where(['user.id' => [  1, 2/*$tmp_array*/ ]])
             ->offset($pagination->offset)
             ->limit($pagination->limit)
             ->all();
 
-        return $this->render('@app/views/post/index.php',[
-            'posts' => $posts,
-            'pagination' => $pagination,
-        ]);
+        //return $this->render('@app/views/post/index.php',[
+        //    'posts' => $posts,
+        //    'pagination' => $pagination,
+        //]);
     }
 
     /**
@@ -80,8 +99,8 @@ class PostController extends Controller
         $comments_count = $comment_query->count();
 
         $tmp_post = new Post();
-            $post_author = $tmp_post->findAuthorUsername($id); // find author username
-            $hasPrivilegies_Post = $tmp_post->checkUDPrivilegies($model); // check user permissions
+            $post_author = $tmp_post->findAuthorUsername($id); // finds author username
+            $hasPrivilegies_Post = $tmp_post->checkUDPrivilegies($model); // checks user permissions
         unset($tmp_post);
 
         # if comment is loaded
@@ -119,13 +138,12 @@ class PostController extends Controller
                 ->andWhere('author_id=:author_id', [':author_id' => Yii::$app->user->id]);
         }
         $pagination = new Pagination([
-            'defaultPageSize' => 5,
+            'defaultPageSize' => $model->linkPager,
             'totalCount' => $posts->count(),
         ]);
 
 
         return $this->render('ourPosts', [
-            'model' => $model,
             'posts' => $posts->all(),
             'pagination' => $pagination,
         ]);
@@ -189,7 +207,6 @@ class PostController extends Controller
         $model = $this->findModel($id);
         // If this is an author or an admin
         if($model->checkUDPrivilegies($model)) {
-            Comment::deleteAll('post_id=:post_id', [':post_id' => $id]);
             $model->delete();
             return $this->redirect(['index']);
         } else {

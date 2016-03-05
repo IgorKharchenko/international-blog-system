@@ -86,21 +86,62 @@ class User extends ActiveRecord implements IdentityInterface
     public function alreadyHasAdmins()
     {
         $auth = Yii::$app->authManager;
-        # Checks if there are any admins in the blog
         $getAlreadyHasAdmins = $auth->getUserIdsByRole('admin');
         return empty($getAlreadyHasAdmins) ? $alreadyHasAdmins = false : $alreadyHasAdmins = true;
     }
 
     /**
-     * Finds if current user is an admin
+     * Finds if current user is an admin(haves an admin rights)
      * @return bool
      */
     public function isAdmin()
     {
         $auth = Yii::$app->authManager;
-        # Checks if user have an admin rights
         $getIsAdmin = $auth->getRolesByUser(Yii::$app->user->id);
         return (ArrayHelper::getValue($getIsAdmin, 'admin')) ? true : false;
+    }
+
+    /**
+     * Gets a role of selected user
+     * @param $id| ID of selected user
+     * @return string Role of the user
+     */
+    public function getRole($id)
+    {
+        $auth = Yii::$app->authManager;
+        $authorRole = $auth->getRole('author');
+        $adminRole = $auth->getRole('admin');
+        $getRoles = $auth->getRolesByUser($id);
+        if(ArrayHelper::getValue($getRoles, 'author'))
+            return 'Author';
+        else
+            return 'Administrator';
+    }
+
+    /**
+     * Sets a role to selected user
+     * @param $id| ID of selected user
+     * @param $role
+     */
+    public function setRole($id, $role)
+    {
+        $auth = Yii::$app->authManager;
+        $authorRole = $auth->getRole('author');
+        $adminRole = $auth->getRole('admin');
+        $getRoles = $auth->getRolesByUser($id);
+        if($role != null) {
+            if($role == 'admin') {
+                if(ArrayHelper::getValue($getRoles, 'author'))
+                    $auth->revoke($authorRole, $id);
+                if(ArrayHelper::getValue($getRoles, 'admin') == null)
+                    $auth->assign($adminRole, $id);
+            } elseif($role == 'author') {
+                if(ArrayHelper::getValue($getRoles, 'admin'))
+                    $auth->revoke($adminRole, $id);
+                if(ArrayHelper::getValue($getRoles, 'author') == null)
+                    $auth->assign($authorRole, $id);
+            }
+        }
     }
 
     /**
