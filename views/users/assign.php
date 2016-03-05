@@ -20,10 +20,10 @@ $this->params['breadcrumbs'][] = $this->title;
         <h3><strong>No registered users yet!</strong> Please register a user for assign admin privilegies.</h3>
     <?php endif; ?>
 
-    <?php if($assignRole): ?>
+    <?php if($setRole): ?>
         <?= Alert::widget([
             'options' => ['class' => 'alert-success'],
-            'body' => 'User has been assigned to <b>' .$assignRole. '</b> role!',
+            'body' => 'User has been assigned to <b>' .$setRole. '</b> role!',
         ]); ?>
     <?php endif; ?>
 
@@ -41,6 +41,9 @@ $this->params['breadcrumbs'][] = $this->title;
             'columns' => [
                 'id',
                 'username',
+                ['label' => 'Role', 'value' => function($model) {
+                    return $model->getRole($model->id);
+                }],
                 [
                     'attribute' => 'assignToAdmin',
                     'value' => function($data) {
