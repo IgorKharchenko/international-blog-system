@@ -33,7 +33,7 @@ $this->params['breadcrumbs'][] = $this->title;
         <br/>
         <?php $formatter = Yii::$app->formatter; ?>
         <h5><i>
-                <?= Icon::show('user') . /*$user_model->username*/ $posts->username ?>
+                <?= Icon::show('user') . $user_model->username ?>
                 |  <?= Icon::show('calendar') . $formatter->asDatetime($post->publish_date) ?>
                 |  <?= Icon::show('comment') . $comments_count ?>
                 <!-- Buttons -->
