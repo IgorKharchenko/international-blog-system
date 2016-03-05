@@ -49,10 +49,10 @@ class PostController extends Controller
 
         # Firstly we find all displayed posts
         $posts = $query->where('publish_status=:publish_status', [':publish_status' => 'publish'])
+            ->orderBy('publish_date')
             ->offset($pagination->offset)
             ->limit($pagination->limit)
             ->all();
-        //return print_r($posts);
 
         # Secondly we need to count all author_id's of displayed posts
         $tmp_array = Array();
@@ -60,21 +60,18 @@ class PostController extends Controller
         {
             array_push($tmp_array, $post->author_id);
         }
-        //return print_r($tmp_array);
 
         # Thirdly we need to use this array to provide the username in the query
-        return $posts_d = $query
-            //->where('publish_status=:publish_status', [':publish_status' => 'publish'])
-            ->innerJoin('user', ['post.author_id' => 'user.id'])
-            ->where(['user.id' => [  1, 2/*$tmp_array*/ ]])
-            ->offset($pagination->offset)
-            ->limit($pagination->limit)
-            ->all();
+        # I'm gonna correct this
+        //$author = User::find()
+        //    ->where(['id' => [  $tmp_array[1] ]])
+        //    ->offset($pagination->offset)
+        //    ->limit($pagination->limit);
 
-        //return $this->render('@app/views/post/index.php',[
-        //    'posts' => $posts,
-        //    'pagination' => $pagination,
-        //]);
+        return $this->render('index',[
+            'posts' => $posts,
+            'pagination' => $pagination,
+        ]);
     }
 
     /**
