@@ -3,6 +3,7 @@
 namespace app\models;
 
 use Yii;
+use yii\helpers\ArrayHelper;
 
 /**
  * This is the model class for table "comment".
@@ -92,24 +93,90 @@ class Comment extends \yii\db\ActiveRecord
     }
 
     /**
-     * Gets all the comments which are belongs to post ID
-     * @param $id Post ID
-     * @param $pagination Pagination info for offset+limit
-     * @return array|\yii\db\ActiveRecord[]
+     * Counts all author ID's of displayed comments
+     * and deletes all repeating values from that array
+     * @param $posts| Array with all posts that have been displayed
+     * @return string|
      */
-    public function getPostComments($id, $pagination)
+    public function getAuthorIDs($comments)
     {
-        return Comment::find()
-            ->where(['post_id' => $id])
-            ->orderBy('publish_date')
-            ->offset($pagination->offset)
-            ->limit($pagination->limit)
-            ->all();
+        # 2 step
+        $array = Array();
+        $i=0;
+        foreach($comments as $comment)
+        {
+            $array[$i] = ['id' => $comment->author_id];
+            $i++;
+        }
+        # 3 step
+        $array = $this->deleteRepeatingValues($array);
+        $temp_str = $this->getAuthorIDsInString($array);
+        return $temp_str;
     }
 
     /**
+     * Deletes all repeating values in the authorID array
+     * @param $array| Array with author ID values
+     * @return array|
+     */
+    private function deleteRepeatingValues($array)
+    {
+        return $array = array_map("unserialize", array_unique( array_map("serialize", $array) ));
+    }
+
+    /**
+     * Returns a string contains all author ID's separated by comma
+     * @param $array| Array that contains all user ID's
+     * @return string|
+     */
+    private function getAuthorIDsInString($array)
+    {
+        $temp = '';
+        for ($i = 0; $i < count($array); $i++) {
+            $temp .= $array[$i]['id'];
+            if ($i != count($array) - 1)
+                $temp .= ', ';
+        }
+        return $temp;
+    }
+
+    /**
+     * Gets all the comments which are belongs to post ID
+     * @param int $id Post ID
+     * @param Pagination $pagination
+     * @return array|\yii\db\ActiveRecord[]
+     */
+    public function findPostComments($id, $pagination)
+    {
+        return Comment::find()
+            ->where(['post_id' => $id])
+            ->offset($pagination->offset)
+            ->limit($pagination->limit)
+            ->orderBy('publish_date')
+            ->all();
+    }
+
+
+    /**
+     * Finds all comments where 'post_id' IN (string).
+     * @param $author_IDs| String contains all post ID's
+     * @param $pagination| Pagination offset and limit values for this query
+     * @return array|\yii\db\ActiveRecord[] Returns an array contains info about all comments
+     */
+    public function findByPostIDs($post_IDs)
+    {
+        $query = Comment::find()
+            ->select('id, post_id')
+            ->where('post_id IN('.$post_IDs.')')
+            ->asArray()
+            ->all();
+        return $query;
+    }
+
+
+    /**
      * Finds author username by comment id
-     * @param $comment_id Comment id
+     * @param $comment_id| Comment id
      * @return mixed|null if a comment isn't found
      */
     public function findAuthorUsername($comment_id) {
@@ -122,6 +189,35 @@ class Comment extends \yii\db\ActiveRecord
             ->where('id=:author_id', ['author_id' => $comment->author_id])
             ->one();
         return !is_null($user_model) ? $user_model : false;
+    }
+
+    /**
+     * Returns query which finds all comments by post ID
+     * @param $id| Post ID
+     * @return mixed| Query
+     */
+    public function queryFindByPostID($id)
+    {
+        return Comment::find()->where(['post_id' => $id]);
+    }
+
+    /**
+     * Updates comment_count on Post
+     * @param $post| Post model required to this function
+     * @param $string| string contains mode: count++ is increment, count-- is decrement
+     * @return mixed| Returns an executed query
+     */
+    public function updateCommentsCount($post, $string)
+    {
+        $string === 'count++' ? $inc = 1 : $inc = -1;
+
+        $command = Yii::$app->db->createCommand();
+        $result = $command->update( #sql UPDATE
+            'post', #table
+            ['comments_count' => $post->comments_count + $inc], #sql update SET
+            ['id' => $post->id] #sql WHERE
+        )->execute();
+        return $result;
     }
 
     /**
