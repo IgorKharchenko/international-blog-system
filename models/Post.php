@@ -3,6 +3,8 @@
 namespace app\models;
 
 use Yii;
+use yii\helpers\ArrayHelper;
+
 
 /**
  * This is the model class for table "post".
@@ -70,7 +72,7 @@ class Post extends \yii\db\ActiveRecord
     }
 
     /**
-     * Gets all the data of the post (in creation time)
+     * Gets all the data of the post (post/create)
      */
     public function getPostData()
     {
@@ -88,6 +90,70 @@ class Post extends \yii\db\ActiveRecord
     }
 
     /**
+     * Finds all published posts with given offset and limit
+     * @param $pagination| Gives offset and limit of this query
+     * @return array|\yii\db\ActiveRecord[]|
+     */
+    public function findAllDisplayedPosts($pagination)
+    {
+        return Post::find()
+            ->where('publish_status=:publish_status', [':publish_status' => 'publish'])
+            ->orderBy('publish_date')
+            ->offset($pagination->offset)
+            ->limit($pagination->limit)
+            ->all();
+    }
+
+    /**
+     * Counts all author ID's of displayed posts
+     * and deletes all repeating values from that array
+     * @param $posts| Array with all posts that have been displayed
+     * @return string|
+     */
+    public function getAuthorIDs($posts)
+    {
+        # 2 step
+        $array = Array();
+        $i=0;
+        foreach($posts as $post)
+        {
+            $array[$i] = ['id' => $post->author_id];
+            $i++;
+        }
+        $arrayLastAmount = count($array);
+
+        # 3 step
+        $array = $this->deleteRepeatingValues($array);
+        return $temp_str = $this->getAuthorIDsInString($array, $arrayLastAmount);
+    }
+
+    /**
+     * Deletes all repeating values in the authorID array
+     * @param $array| Array with author ID values
+     * @return array|
+     */
+    private function deleteRepeatingValues($array)
+    {
+        return $array = array_map("unserialize", array_unique( array_map("serialize", $array) ));
+    }
+
+    /**
+     * Returns a string contains all author ID's separated by comma
+     * @param $array| Array that contains all user ID's
+     * @param int $arrayLastAmount| Amount of elements of array before moving off repeating values
+     * @return string|
+     */
+    private function getAuthorIDsInString($array, $arrayLastAmount)
+    {
+        $temp = '';
+        for ($i = 0; $i < $arrayLastAmount; $i++) {
+            if($array[$i] != null)
+                $temp .= $array[$i]['id'] . ', ';
+        }
+        return substr($temp, 0, strrpos($temp, ',')); # deletes all the symbols after the last comma in string
+    }
+
+    /**
      * Finds author username of this post
      * @return mixed|null if error is occured
      */
@@ -101,6 +167,25 @@ class Post extends \yii\db\ActiveRecord
             ->where('id=:author_id', ['author_id' => $author_id->author_id])
             ->one();
         return !is_null($user_model) ? $user_model : null;
+    }
+
+    /**
+     * Finds all or only published/drafted posts of current user
+     * @param $status
+     * @return $this
+     */
+    public function findOurPosts($status)
+    {
+        $query = Post::find();
+
+        if($status == 'all') {
+            return $posts = $query
+                ->where('author_id=:author_id', [':author_id' => Yii::$app->user->id]);
+        } else {
+            return $posts = $query
+                ->where('publish_status=:status', [':status' => $status])
+                ->andWhere('author_id=:author_id', [':author_id' => Yii::$app->user->id]);
+        }
     }
 
     /**
