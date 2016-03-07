@@ -45,8 +45,8 @@ class User extends ActiveRecord implements IdentityInterface
             'timestamp' => [
                 'class' => TimestampBehavior::className(),
                 'attributes' => [
-                    ActiveRecord::EVENT_BEFORE_INSERT => 'created_at',
-                    ActiveRecord::EVENT_BEFORE_UPDATE => 'updated_at',
+                    //ActiveRecord::EVENT_BEFORE_INSERT => 'created_at',
+                    //ActiveRecord::EVENT_BEFORE_UPDATE => 'updated_at',
                 ],
                 'value' => function() {return date('U'); } // Unix timestamp
             ]
@@ -114,7 +114,7 @@ class User extends ActiveRecord implements IdentityInterface
         $getRoles = $auth->getRolesByUser($id);
         if(ArrayHelper::getValue($getRoles, 'author'))
             return 'Author';
-        else
+        else if(ArrayHelper::getValue($getRoles, 'admin'))
             return 'Administrator';
     }
 
@@ -142,6 +142,40 @@ class User extends ActiveRecord implements IdentityInterface
                     $auth->assign($authorRole, $id);
             }
         }
+    }
+
+    /**
+     * Finds all users where 'id' IN (string).
+     * @param $author_IDs| String contains all user ID's
+     * @return array|\yii\db\ActiveRecord[] Returns an array contains info about all users
+     */
+    public function findByAuthorIDs ($author_IDs)
+    {
+        if($author_IDs) {
+            $query = User::find()
+                ->select('id, username')
+                ->where('id IN(' . $author_IDs . ')')
+                ->asArray()
+                ->all();
+            return $query;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Searches username by user ID
+     * @param $array| All users that will be displayed
+     * @param $id| ID of selected user
+     * @return string| string Username of selected user
+     */
+    public function searchUsernameById($array, $id)
+    {
+        $i = 0;
+        do
+            if($array[$i]['id'] == $id)
+                return $array[$i]['username'];
+        while(++$i < count($array));
     }
 
     /**
@@ -272,5 +306,15 @@ class User extends ActiveRecord implements IdentityInterface
     public function removePasswordResetToken()
     {
         $this->password_reset_token = null;
+    }
+
+    /**
+     * Checks user privilegies for update/delete users or own user info
+     * @return bool
+     */
+    public function checkUDPrivilegies()
+    {
+        return ((Yii::$app->user->can('updateOwnUser', ['user' => new User]) || Yii::$app->user->can('updateUser'))
+            && (Yii::$app->user->can('deleteOwnUser', ['user' => new User]) || Yii::$app->user->can('deleteUser')));
     }
 }
