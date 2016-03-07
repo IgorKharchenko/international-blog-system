@@ -39,37 +39,29 @@ class PostController extends Controller
     {
         $model = new Post;
         $query = Post::find();
+        $authors_model = new User;
 
         $pagination = new Pagination([
-            'defaultPageSize' => 5,
+            'defaultPageSize' => 10,
             'totalCount' => $query
                         ->where('publish_status=:publish_status', [':publish_status' => 'publish'])
                         ->count(),
         ]);
 
-        # Firstly we find all displayed posts
-        $posts = $query->where('publish_status=:publish_status', [':publish_status' => 'publish'])
-            ->orderBy('publish_date')
-            ->offset($pagination->offset)
-            ->limit($pagination->limit)
-            ->all();
-
-        # Secondly we need to count all author_id's of displayed posts
-        $tmp_array = Array();
-        foreach($posts as $post)
-        {
-            array_push($tmp_array, $post->author_id);
-        }
-
-        # Thirdly we need to use this array to provide the username in the query
-        # I'm gonna correct this
-        //$author = User::find()
-        //    ->where(['id' => [  $tmp_array[1] ]])
-        //    ->offset($pagination->offset)
-        //    ->limit($pagination->limit);
+        /*  === Showing username of the author of selected post ===
+            Firstly we need to find all displayed posts;
+            Secondly we count all author_id's of displayed posts
+                and delete all repeating values from that array,
+                also create a string contains all values from array separated by comma;
+            Thirdly we need to use this array to provide the username in the query.   */
+        $posts = $model->findAllDisplayedPosts($pagination); # 1 step
+        $authors_IDs = $model->getAuthorIDs($posts); # 2 step
+        $authors_info = $authors_model->findByAuthorIDs($authors_IDs); # 3 step
 
         return $this->render('index',[
             'posts' => $posts,
+            'authors_model' => $authors_model,
+            'authors_info' => $authors_info,
             'pagination' => $pagination,
         ]);
     }
@@ -82,35 +74,38 @@ class PostController extends Controller
     public function actionView($id)
     {
         $model = $this->findModel($id);
+        $post_author = $model->findAuthorUsername($id); // finds author username
 
-        // find all comments with [comment.post_id == post.id]
-        $comment_model = new Comment;
-        $comment_query = Comment::find()
-            ->where(['post_id' => $id]);
-
+        // find ALL comments with [comment.post_id == post.id]
+        $comments_model = new Comment;
         $comments_pagination = new Pagination([
             'defaultPageSize' => 5,
-            'totalCount' => $comment_query->count(),
+            'totalCount' => $model->comments_count,
         ]);
-        $comments = $comment_model->getPostComments($id, $comments_pagination);
-        $comments_count = $comment_query->count();
-
-        $tmp_post = new Post();
-            $post_author = $tmp_post->findAuthorUsername($id); // finds author username
-            $hasPrivilegies_Post = $tmp_post->checkUDPrivilegies($model); // checks user permissions
-        unset($tmp_post);
+        $comments = $comments_model->findPostComments($id, $comments_pagination); # 1 step
+        $comments_authors_model = new User; // Author model
+        $comments_authors_IDs = $model->getAuthorIDs($comments); # 2 step
+        $comments_authors_info = $comments_authors_model->findByAuthorIDs($comments_authors_IDs); # 3 step
+        /* - 1 step, 2 step... Steps...?! What is this?
+           - See actionIndex for more information. */
 
         # if comment is loaded
-        if ($comment_model->load(Yii::$app->request->post())) {
-            $comment_model->getData();
-            return $this->redirect(['view','id' => $id]);
+        if ($comments_model->load(Yii::$app->request->post())) {
+            if($_POST['status'] == 'ok') {
+                $this->refresh();
+            } else {
+                $comments_model->updateCommentsCount($model, "count++");
+                $comments_model->getData();
+                $this->refresh();
+            }
         } else {
             return $this->render('view', [
                 'model' => $model,
                 'post_author' => $post_author,
-                'hasPrivilegies_Post' => $hasPrivilegies_Post,
+                'userHasPrivilegies_Post' => $model->checkUDPrivilegies($model), // checks user permissions
                 'comments' => $comments,
-                'comments_count' => $comments_count,
+                'comments_authors_model' => $comments_authors_model,
+                'comments_authors_info' => $comments_authors_info,
                 'comments_pagination' => $comments_pagination,
             ]);
         }
@@ -124,24 +119,16 @@ class PostController extends Controller
     public function actionOurposts($status='all')
     {
         $model = new Post;
-        $query = Post::find();
+        $posts = $model->findOurPosts($status); // Find our posts with specified status
 
-        if($status == 'all') {
-            $posts = $query
-                ->where('author_id=:author_id', [':author_id' => Yii::$app->user->id]);
-        } else {
-            $posts = $query
-                ->where('publish_status=:status', [':status' => $status])
-                ->andWhere('author_id=:author_id', [':author_id' => Yii::$app->user->id]);
-        }
         $pagination = new Pagination([
-            'defaultPageSize' => $model->linkPager,
+            'defaultPageSize' => 5,
             'totalCount' => $posts->count(),
         ]);
 
-
         return $this->render('ourPosts', [
             'posts' => $posts->all(),
+            'post_author' => User::findIdentity(Yii::$app->user->id),
             'pagination' => $pagination,
         ]);
     }
@@ -194,18 +181,17 @@ class PostController extends Controller
 
     /**
      * Deletes an existing Post model.
-     * With the post deletion all the comments deletion is needed too.
-     * If deletion is successful, the browser will be redirected to the 'index' page.
      * @param string $id
+     * @param string $route | By default is null
      * @return mixed
      */
-    public function actionDelete($id)
+    public function actionDelete($id, $route = 'index')
     {
         $model = $this->findModel($id);
         // If this is an author or an admin
         if($model->checkUDPrivilegies($model)) {
             $model->delete();
-            return $this->redirect(['index']);
+            return $this->redirect('@app/views/posts/index.php');
         } else {
             return $this->redirect('@app/views/site/login.php');
         }
