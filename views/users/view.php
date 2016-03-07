@@ -2,6 +2,7 @@
 
 use yii\helpers\Html;
 use yii\widgets\DetailView;
+use yii\widgets\Pjax;
 
 /* @var $this yii\web\View */
 /* @var $model app\models\Users */
@@ -10,29 +11,42 @@ $this->title = 'Info about user ' . $model->username;
 $this->params['breadcrumbs'][] = ['label' => 'Users', 'url' => ['index']];
 $this->params['breadcrumbs'][] = $model->username;
 ?>
+<?php Pjax::begin(); ?>
 <div class="users-view">
 
     <h1>User Page</h1>
 
-
-    <?= DetailView::widget([
-        'model' => $model,
-        'attributes' => [
-            'id',
-            'username',
-            'email:email',
-            'created_at:datetime',
-            'updated_at:datetime',
-        ],
-    ]) ?>
-    <!-- Update User Info Button -->
-    <?php if(Yii::$app->user->can('updateOwnUser', ['user' => $model]) ): ?>
-        <?= Html::a('Update User Info', ['users/update', 'id' => $model->id], ['class' => 'btn-lg btn-info']); ?>
+    <?php if($model->checkUDPrivilegies($model) == true): ?>
+        <?= DetailView::widget([
+            'model' => $model,
+            'attributes' => [
+                'id',
+                'username',
+                'email:email',
+                'created_at:datetime',
+                'updated_at:datetime',
+            ],
+        ]) ?>
     <?php endif; ?>
-    <!-- End Button -->
+    <?php if($model->checkUDPrivilegies($model) == false): ?>
+        <?= DetailView::widget([
+            'model' => $model,
+            'attributes' => [
+                'id',
+                'username',
+                'created_at:datetime',
+                'updated_at:datetime',
+            ],
+        ]) ?>
+    <?php endif; ?>
+
+
+    <?php if($model->checkUDPrivilegies($model)): ?>
+        <!-- Update User Info Button -->
+        <?= Html::a('Update User Info', ['users/update', 'id' => $model->id], ['class' => 'btn-lg btn-info']); ?>
+        <!-- End Button -->
     <br/><br/>
-    <!-- Delete User Button -->
-    <?php if(Yii::$app->user->can('deleteOwnUser', ['user' => $model])): ?>
+        <!-- Delete User Button -->
         <?= Html::a('Delete this user', ['users/delete', 'id' => $model->id], [
             'class' => 'btn-xs btn-danger',
             'data' => [
@@ -40,7 +54,7 @@ $this->params['breadcrumbs'][] = $model->username;
                 'method' => 'post',
             ],
         ]); ?>
+        <!-- End Button -->
     <?php endif; ?>
-    <!-- End Button -->
-
 </div>
+<?php Pjax::end(); ?>

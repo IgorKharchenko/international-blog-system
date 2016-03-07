@@ -1,8 +1,9 @@
 <?php
 
 use yii\helpers\Html;
+use yii\helpers\Url;
 use yii\grid\GridView;
-use kartik\icons\Icon;
+use yii\widgets\Pjax;
 
 
 /* @var $this yii\web\View */
@@ -11,6 +12,7 @@ use kartik\icons\Icon;
 $this->title = 'Users';
 $this->params['breadcrumbs'][] = $this->title;
 ?>
+<?php Pjax::begin(); ?>
 <div class="users-index">
 
     <h1><?= Html::encode($this->title) ?></h1>
@@ -24,8 +26,16 @@ $this->params['breadcrumbs'][] = $this->title;
              'created_at:datetime',
              'updated_at:datetime',
 
-            (Yii::$app->user->can('updatePost')) ? ['class' => 'yii\grid\ActionColumn'] : ['label' => ':D'],
+            (Yii::$app->user->can('updatePost'))
+                ? ['class' => 'yii\grid\ActionColumn']
+                : ['label' => 'View User Page',
+                    'attribute' => 'View',
+                    'format' => 'raw',
+                    'value' => function($data){
+                    return Html::a('View',Url::to(['users/view', 'id' => $data->id]));
+            }],
         ],
     ]); ?>
 
 </div>
+<?php Pjax::end(); ?>

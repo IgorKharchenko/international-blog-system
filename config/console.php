@@ -23,7 +23,7 @@ $config = [
             ],
         ],
         'authManager' => [
-            'class' => 'yii\rbac\DbManager',
+            'class' => 'yii\rbac\PhpManager',
             'defaultRoles' => ['admin', 'author', 'unapproved']
         ],
         'db' => $db,

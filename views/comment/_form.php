@@ -14,21 +14,23 @@ use dosamigos\ckeditor\CKEditor;
 
     <?php $form = ActiveForm::begin(); ?>
 
-    <?php /*$model->id = $model->getId();
-    $model->post_id = $_GET['id'];
-    $model->author_id = Yii::$app->user->id;
-    $model->publish_date = time();*/ ?>
-
-    <!-- If isset($_GET['post_id']) - that it's update, otherwise it's a new comment
-         If it's an update - then comment, post and author ID's gets from DB,
-            otherwise gets from Comment model -->
-
     <?= $form->field($model, 'title')->textInput(['maxlength' => true]) ?>
 
+    <!-- I use iMacros for spawning big amount of info,
+        and it doesn't write any info in the CKEditor widget;
+         that's why I use this bicycle -->
+    <?php $tumbler = false; ?>
+
+    <?php if($tumbler): ?>
     <?= $form->field($model, 'content')->widget(CKEditor::className(), [
         'options' => ['rows' => 6],
         'preset' => 'basic',
     ]) ?>
+    <?php endif; ?>
+
+    <?php if(!$tumbler): ?>
+        <?= $form->field($model, 'content')->textInput(['maxlength' => true]) ?>
+    <?php endif; ?>
 
     <div class="form-group">
         <?= Html::submitButton($model->isNewRecord ? 'Create' : 'Update', ['class' => $model->isNewRecord ? 'btn btn-success' : 'btn btn-primary']) ?>

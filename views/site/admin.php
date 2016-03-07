@@ -32,16 +32,16 @@ $this->title = 'Admin Page';
                     'dropdown' => [
                         'items' => [
                             [
-                                'label' => 'With the Draft status',
-                                'url' => ['post/ourposts', 'status' => 'draft'],
-                            ],
-                            [
                                 'label' => 'With the Publish status',
                                 'url' => ['post/ourposts', 'status' => 'publish'],
                             ],
                             [
-                                'label' => 'All the posts',
-                                'url' => ['post/ourposts', 'status' => 'All'],
+                                'label' => 'With the Draft status',
+                                'url' => ['post/ourposts', 'status' => 'draft'],
+                            ],
+                            [
+                                'label' => 'All posts',
+                                'url' => ['post/ourposts', 'status' => 'all'],
                             ],
                         ]
                     ]

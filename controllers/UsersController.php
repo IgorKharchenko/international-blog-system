@@ -56,7 +56,7 @@ class UsersController extends Controller
     public function actionView($id)
     {
         $model = $this->findModel($id);
-        if(!Yii::$app->user->isGuest && $model->checkUDPrivilegies($model)) {
+        if(!Yii::$app->user->isGuest) {
             return $this->render('view', [
                 'model' => $model,
             ]);

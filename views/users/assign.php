@@ -6,6 +6,7 @@ use yii\grid\GridView;
 use yii\widgets\ActiveForm;
 use yii\widgets\LinkPager;
 use yii\bootstrap\Alert;
+use yii\widgets\Pjax;
 
 /* @var $this yii\web\View */
 /* @var $dataProvider yii\data\ActiveDataProvider */
@@ -13,6 +14,7 @@ use yii\bootstrap\Alert;
 $this->title = 'Role Assign';
 $this->params['breadcrumbs'][] = $this->title;
 ?>
+<?php Pjax::begin(); ?>
 <div class="users-index">
 
     <h1><?= Html::encode($this->title) ?></h1>
@@ -66,3 +68,4 @@ $this->params['breadcrumbs'][] = $this->title;
     <?php endif; ?>
 
 </div>
+<?php Pjax::end(); ?>

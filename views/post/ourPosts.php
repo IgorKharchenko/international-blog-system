@@ -24,24 +24,21 @@ $this->params['breadcrumbs'][] = "Our Post Overview";
         ]); ?>
     <?php endif; ?>
     <?php Icon::map($this); ?>
+
+    <?php $formatter = Yii::$app->formatter; ?>
+
     <?php foreach($posts as $post): ?>
         <h4><?= Html::a("{$post->title}", ['post/view', 'id' => $post->id]) ?></h4>
-        <h6><?= Html::encode("{$post->anons}") ?></h6>
-
-        <?php
-            $formatter = Yii::$app->formatter;
-            $tmp_post = new Post;
-                $post_author = $tmp_post->findAuthorUsername($post->id); // finds author username
-            unset($tmp_post);
-        ?>
+        <h5><?= Html::encode("{$post->anons}") ?></h5>
 
         <b><?= Icon::show('user') . $post_author->username ?></b>
         |  <i><?= Icon::show('calendar') . $formatter->asDatetime($post->publish_date) ?></i>
-        | Publish Status: <b><?= Html::encode("{$post->publish_status}") . "ed" ?> | </b>
+        |  <?= Icon::show('comment') . $post->comments_count ?>
+        |  Publish Status: <b><?= Html::encode("{$post->publish_status}") . "ed" ?> | </b>
 
         <!-- Buttons -->
             <?= Html::a('Update', ['update', 'id' => $post->id], ['class' => 'btn-xs btn-info']) ?>
-            <?= Html::a('Delete', ['delete', 'id' => $post->id], [
+            <?= Html::a('Delete', ['delete', 'id' => $post->id, 'route' => $post->publish_status], [
                 'class' => 'btn-xs btn-danger',
                 'data' => [
                     'confirm' => 'Are you sure you want to delete this item?',

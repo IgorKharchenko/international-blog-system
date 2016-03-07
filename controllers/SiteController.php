@@ -10,6 +10,7 @@ use app\models\LoginForm;
 use app\models\SignupForm;
 use app\models\Post;
 use app\models\User;
+use app\models\Comment;
 use yii\data\Pagination;
 use yii\helpers\ArrayHelper;
 
@@ -52,27 +53,37 @@ class SiteController extends Controller
         ];
     }
 
+    /**
+     * Lists all Post models.
+     * @return mixed
+     */
     public function actionIndex()
     {
         $model = new Post;
         $query = Post::find();
+        $authors_model = new User;
 
         $pagination = new Pagination([
-            'defaultPageSize' => 5,
+            'defaultPageSize' => 10,
             'totalCount' => $query
-                ->where('publish_status=:publish', [':publish' => 'publish'])
+                ->where('publish_status=:publish_status', [':publish_status' => 'publish'])
                 ->count(),
         ]);
-        $posts = $query
-            ->where('publish_status=:publish', [':publish' => 'publish'])
-            ->orderBy('publish_date')
-            ->offset($pagination->offset)
-            ->limit($pagination->limit)
-            ->all();
+
+        /*  === Showing username of the author of selected post ===
+            Firstly we need to find all displayed posts;
+            Secondly we count all author_id's of displayed posts
+                and delete all repeating values from that array,
+                also create a string contains all values from array separated by comma;
+            Thirdly we need to use this array to provide the username in the query.   */
+        $posts = $model->findAllDisplayedPosts($pagination); # 1 step
+        $tmp_str = $model->getAuthorIDs($posts); # 2 step
+        $authors_info = $authors_model->findByAuthorIDs($tmp_str, $pagination); # 3 step
 
         return $this->render('@app/views/post/index.php',[
-            'model' => $model,
             'posts' => $posts,
+            'authors_info' => $authors_info,
+            'authors_model' => $authors_model,
             'pagination' => $pagination,
         ]);
     }
