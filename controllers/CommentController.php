@@ -2,6 +2,7 @@
 
 namespace app\controllers;
 
+use app\models\Post;
 use Yii;
 use app\models\Comment;
 use yii\data\ActiveDataProvider;
@@ -43,11 +44,13 @@ class CommentController extends Controller
      * If creation is successful, the browser will be redirected to the 'view' page.
      * @return mixed
      */
-    public function actionCreate()
+    public function actionCreate($post_id)
     {
         $model = new Comment();
+        $post = Post::findOne($post_id);
         if($model->checkCPrivilegies()) {
             if ($model->load(Yii::$app->request->post()) && $model->save()) {
+                $model->updateCommentsCount($post, "count++");
                 return $this->redirect(['post\view', 'id' => $model->id]);
             } else {
                 return $this->render('create', [
@@ -90,9 +93,11 @@ class CommentController extends Controller
     public function actionDelete($id, $post_id=null)
     {
         $model = $this->findModel($id);
+        $post = Post::findOne($post_id);
         if($model->checkUDPrivilegies($model)) {
+            $model->updateCommentsCount($post, "count--");
             $model->delete();
-            return $this->redirect(['post/view', 'id' => $post_id]);
+            return $this->redirect('@app/views/post/view.php?id='.$post_id.'&status=ok');
         } else {
             return $this->redirect('@app/views/site/login.php');
         }
