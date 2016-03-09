@@ -19,7 +19,7 @@ use dosamigos\ckeditor\CKEditor;
     <!-- I use iMacros for spawning big amount of info,
         and it doesn't write any info in the CKEditor widget;
          that's why I use this bicycle -->
-    <?php $tumbler = false; ?>
+    <?php $tumbler = true; ?>
 
     <?php if($tumbler): ?>
     <?= $form->field($model, 'content')->widget(CKEditor::className(), [
