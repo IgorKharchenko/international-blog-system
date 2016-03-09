@@ -3,9 +3,14 @@ namespace app\commands;
 
 use Yii;
 use yii\console\Controller;
+use app\models\User;
+use yii\helpers\ArrayHelper;
 
 class RbacController extends Controller
 {
+    /**
+     * Creates all rules and roles of users of this blog.
+     */
     public function actionInit()
     {
         $auth = Yii::$app->authManager;
@@ -155,5 +160,40 @@ class RbacController extends Controller
         $auth->addChild($admin, $deleteUser);
         #
         $auth->addChild($admin, $createUser);
+    }
+
+    /**
+     * Assigns a user to admin role.
+     * This action is needed to setup first admin in the blog.
+     * @param int $id User ID
+     * @return int 0 if all is successful, 1 if identity or rules isn't found
+     */
+    public function actionInitFirstAdmin($id)
+    {
+        $auth = Yii::$app->authManager;
+        $user = User::findIdentity($id);
+        $adminRole = $auth->getRole('admin');
+        $authorRole = $auth->getRole('author');
+        $getRoles = $auth->getRolesByUser($id);
+        if($adminRole && $authorRole) {
+            if (!is_null($user)) {
+                if(ArrayHelper::getValue($getRoles, 'author'))
+                    $auth->revoke($authorRole, $id);
+                if(ArrayHelper::getValue($getRoles, 'admin') == null)
+                    $auth->assign($adminRole, $id);
+                else {
+                    echo "This User Is Already Assigned To An Admin!\n";
+                    return 0;
+                }
+                echo "Assignment Successful!\n";
+                return 0;
+            } else {
+                echo "Identity with id=".$id." isn't found!";
+                return 1;
+            }
+        } else {
+            echo "Admin Role Not Found! Please run the rbac/init action for first roles initialization.";
+            return 1;
+        }
     }
 }
