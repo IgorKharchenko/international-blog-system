@@ -13,8 +13,9 @@ Also the blog contains admin privilegies assignment page, which works if the com
 
 TODO
 ----
-	— Timezone check is needed;
-	— Show Email checkbox is needed.
+	— Console
+		— Timezone check is needed;
+		— Show Email checkbox is needed.
 
 P.S. 
 ----
