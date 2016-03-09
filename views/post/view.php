@@ -6,6 +6,7 @@ use yii\db\Query;
 use yii\widgets\LinkPager;
 use kartik\icons\Icon;
 use app\models\User;
+use app\models\Post;
 use app\models\Comment;
 use yii\widgets\Pjax;
 
@@ -24,9 +25,8 @@ $this->params['breadcrumbs'][] = $this->title;
     <?php $formatter = Yii::$app->formatter; ?>
     </br></br>
     <h5>
-            <b><?= Icon::show('user') . $post_author->username ?></b>
+            <b><?= Icon::show('user') . Html::a(Html::encode($post_author->username), ['users/view', 'id' => $post_author->id]) ?></b>
             |  <i><?= Icon::show('calendar') . $formatter->asDatetime($model->publish_date) ?></i>
-
             <!-- Buttons -->
             <?php if($userHasPrivilegies_Post): ?>
                 |
@@ -40,46 +40,22 @@ $this->params['breadcrumbs'][] = $this->title;
                 ]); ?>
             <?php endif; ?>
             <!-- End Buttons -->
+        <hr/>
 
+
+        <?= $this->render('@app/views/comment/viewAllCommentsInPost.php', [
+            'model' => $model,
+            'post_author' => $post_author,
+            'userHasPrivilegies_Post' => $model->checkUDPrivilegies($model), // checks user permissions
+            'comments' => $comments,
+            'comments_authors_model' => $comments_authors_model,
+            'comments_authors_info' => $comments_authors_info,
+            'comments_pagination' => $comments_pagination,
+        ]) ?>
 
     </h5>
-</div> <hr>
-
-<div class="comment-view">
-
-    <h2>Comments (<?= $model->comments_count ?>)</h2>
-    <?php foreach($comments as $comment): ?>
-
-        <?php $tmp_comment = new Comment;
-                $userHasPrivilegies_Comment = $tmp_comment->checkUDPrivilegies($comment);
-              unset($tmp_comment); ?>
-        <hr/>
-        <h5>
-            <?= Icon::show('user') . Html::a($comments_authors_model->searchUsernameById($comments_authors_info, $comment->author_id), ['users/view', 'id' => $comment->author_id]) ?>
-            |  <?= Icon::show('calendar') . $formatter->asDatetime($comment->publish_date) ?>
-            <?php if($userHasPrivilegies_Comment): ?>
-                |
-                <?= Html::a('Update', ['comment/update', 'id' => $comment->id, 'post_id' => $model->id], ['class' => 'btn-xs btn-info']); ?>
-                <?= Html::a('Delete', ['comment/delete', 'id' => $comment->id, 'post_id' => $model->id, 'route' => 'index'], [
-                    'class' => 'btn-xs btn-danger',
-                    'data' => [
-                        'confirm' => 'Are you sure you want to delete this item?',
-                        'method' => 'post',
-                    ],
-                ]); ?>
-
-            <?php endif; ?>
-            <br/><br/>
-            <h4><?= Html::encode("{$comment->title}") ?></h4>
-
-            <?= $comment->content ?>
-        </h5>
-    <?php endforeach; ?>
-    </br>
-    <?= LinkPager::widget(['pagination' => $comments_pagination]) ?>
-
-</div> <hr>
-
+</div>
+    <hr>
 <div class="comment-create">
     <?php if(!Yii::$app->user->isGuest): ?>
         <h2>Leave a comment</h2></br>

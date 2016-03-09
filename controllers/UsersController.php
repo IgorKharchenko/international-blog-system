@@ -9,6 +9,7 @@ use yii\data\ActiveDataProvider;
 use yii\data\Pagination;
 use yii\helpers\ArrayHelper;
 use yii\web\Controller;
+use yii\web\HttpException;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
 
@@ -36,8 +37,15 @@ class UsersController extends Controller
     public function actionIndex()
     {
         if(!Yii::$app->user->isGuest) {
+            $pagination = new Pagination([
+                'defaultPageSize' => 10,
+                'totalCount' => User::find()->count(),
+            ]);
             $dataProvider = new ActiveDataProvider([
                 'query' => Users::find(),
+                'pagination' => [
+                    'pageSize' => 10,
+                ]
             ]);
 
             return $this->render('index', [
@@ -68,14 +76,18 @@ class UsersController extends Controller
     /**
      * Creates a new Users model.
      * If creation is successful, the browser will be redirected to the 'view' page.
+     * @throws HttpException if transaction is unsuccessful
      * @return mixed
      */
     public function actionCreate()
     {
-        $model = new Users();
-
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            return $this->redirect(['view', 'id' => $model->id]);
+        $model = new Users;
+        if ($model->load(Yii::$app->request->post())) {
+            $user = new User;
+            if($user->saveUser($model))
+                return $this->redirect(['view', 'id' => $model->id]);
+            else
+                throw new HttpException(400, 'Error during saving comment info in the database');
         } else {
             return $this->render('create', [
                 'model' => $model,
@@ -87,17 +99,21 @@ class UsersController extends Controller
      * Updates an existing Users model.
      * If update is successful, the browser will be redirected to the 'view' page.
      * @param integer $id
+     * @throws HttpException if transaction is unsuccessful
      * @return mixed
      */
     public function actionUpdate($id)
     {
         $model = $this->findModel($id);
-        if(!Yii::$app->user->isGuest &&  $model->checkUDPrivilegies($model)) {
+        if(!Yii::$app->user->isGuest && $model->checkUDPrivilegies($model)) {
 
             if ($model->load(Yii::$app->request->post())) {
-                $model->updated_at = time();
-                $model->save();
-                return $this->redirect(['view', 'id' => $model->id]);
+                $user = User::findIdentity($id);
+                $user->updated_at = time();
+                if($user->saveUser($model))
+                    return $this->redirect(['view', 'id' => $model->id]);
+                else
+                    throw new HttpException(400, 'Error during saving comment info in the database');
             } else {
                 return $this->render('update', [
                     'model' => $model,
@@ -111,6 +127,7 @@ class UsersController extends Controller
     /**
      * Deletes an existing Users model.
      * If deletion is successful, the browser will be redirected to the 'index' page.
+     * @throws HttpException if transaction is unsuccessful
      * @param integer $id
      * @return mixed
      */
@@ -118,8 +135,11 @@ class UsersController extends Controller
     {
         $model = $this->findModel($id);
         if(!Yii::$app->user->isGuest && $model->checkUDPrivilegies($model)) {
-            $model->delete();
-            return $this->redirect(['index']);
+            $user = User::findIdentity($id);
+            if($user->saveUser($model))
+                return $this->redirect(['index']);
+            else
+                throw new HttpException(400, 'Error during saving comment info in the database');
         } else {
             return $this->redirect('@app/views/site/login.php');
         }
@@ -132,18 +152,20 @@ class UsersController extends Controller
     public function actionAssign($id=null, $role=null)
     {
         $model = new User;
-        $auth = Yii::$app->authManager;
-        $alreadyHasAdmins = $model->alreadyHasAdmins();
         $isAdmin = $model->isAdmin();
         # True if we DON'T have any admins or current user is an admin
-        if(!Yii::$app->user->isGuest && (!$alreadyHasAdmins || $isAdmin)) {
-
-            $dataProvider = new ActiveDataProvider([
-                'query' => User::find(),
-            ]);
+        if(!Yii::$app->user->isGuest && $isAdmin) {
             $pagination = new Pagination([
                 'defaultPageSize' => 10,
                 'totalCount' => User::find()->count(),
+            ]);
+            $dataProvider = new ActiveDataProvider([
+                'query' => User::find()
+                            ->offset($pagination->offset)
+                            ->limit($pagination->limit),
+                'pagination' => [
+                    'pageSize' => 10,
+                ]
             ]);
             if(is_null($dataProvider))
             {
@@ -158,15 +180,14 @@ class UsersController extends Controller
                         'dataProvider' => $dataProvider,
                         'model' => $model,
                         'modelIsNull' => false,
-                        'pagination' => $pagination,
                         'setRole' => ($role=='admin') ? 'Administrator' : 'Author',
+                        'assigned_user' => User::findIdentity($id),
                     ]);
                 } else {
                     return $this->render('assign', [
                         'dataProvider' => $dataProvider,
                         'model' => $model,
                         'modelIsNull' => false,
-                        'pagination' => $pagination,
                     ]);
                 }
             }

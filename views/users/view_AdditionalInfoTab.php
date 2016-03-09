@@ -8,17 +8,16 @@ use yii\bootstrap\Tabs;
 /* @var $this yii\web\View */
 /* @var $model app\models\Users */
 ?>
-<div class="view-MainInfoTab">
+<div class="view-AdditionalInfoTab">
     <?php $formatter = Yii::$app->formatter; ?>
     <?= DetailView::widget([
         'model' => $model,
         'attributes' => [
-            'username',
-            'email:email',
-            [
-                'label' => 'Registration Date',
-                'value' => $formatter->asDatetime($model->created_at),
-            ],
+            'full_name',
+            'sex',
+            'country_id',
+            'city',
+            'about',
         ],
     ]) ?>
     </div>

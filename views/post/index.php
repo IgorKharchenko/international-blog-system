@@ -20,19 +20,20 @@ $this->params['breadcrumbs'][] = $this->title;
     <br/>
     <?php foreach($posts as $post): ?>
 
-        <?php $tmp_user = new Post;
+        <?php
+              $tmp_user = new Post;
                 $hasPrivilegies_Post = $tmp_user->checkUDPrivilegies($post);
               unset($tmp_user);
         ?>
 
-        <h4><?= Html::a("{$post->title}", ['post/view', 'id' => $post->id]) ?></h4>
+        <h4><?= Html::a(Html::encode("{$post->title}"), ['post/view', 'id' => $post->id]) ?></h4>
         <h7><?= Html::encode("{$post->anons}") ?></h7>
         <br/>
         <?php $formatter = Yii::$app->formatter; ?>
         <h5>
-                <?= Icon::show('user') . $authors_model->searchUsernameById($authors_info, $post->author_id) ?>
-                |  <?= Icon::show('calendar') . $formatter->asDatetime($post->publish_date) ?>
-                |  <?= Icon::show('comment') . $post->comments_count ?>
+            <?= Icon::show('user') . Html::a(Html::encode($authors_model->searchUsernameById($authors_info, $post->author_id)), ['users/view', 'id' => $post->author_id]) ?>
+            |  <?= Icon::show('calendar') . $formatter->asDatetime($post->publish_date) ?>
+            |  <?= Icon::show('comment') . $post->comments_count ?>
 
                 <!-- Buttons -->
                 <?php if($hasPrivilegies_Post): ?>
@@ -47,12 +48,8 @@ $this->params['breadcrumbs'][] = $this->title;
                     ]); ?>
                 <?php endif; ?>
                 <!-- End Buttons -->
-
-
-
             </h5>
         <hr/>
-
 
     <?php endforeach; ?>
 

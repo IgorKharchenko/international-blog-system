@@ -7,11 +7,11 @@ use app\models\Post;
 use app\models\Comment;
 use app\models\User;
 use yii\data\ActiveDataProvider;
-use yii\helpers\ArrayHelper;
+use yii\data\Pagination;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
+use yii\helpers\ArrayHelper;
 use yii\filters\VerbFilter;
-use yii\data\Pagination;
 use yii\db\ActiveQuery;
 
 /**
@@ -91,13 +91,10 @@ class PostController extends Controller
 
         # if comment is loaded
         if ($comments_model->load(Yii::$app->request->post())) {
-            if($_POST['status'] == 'ok') {
-                $this->refresh();
-            } else {
-                $comments_model->updateCommentsCount($model, "count++");
-                $comments_model->getData();
-                $this->refresh();
-            }
+            $comments_model->updateCommentsCount($model, "count++");
+            $comments_model->getData();
+            $comments_model->saveComment($comments_model);
+            $this->refresh();
         } else {
             return $this->render('view', [
                 'model' => $model,
@@ -144,7 +141,7 @@ class PostController extends Controller
 
         if($model->checkCPrivilegies()) {
             if ($model->load(\Yii::$app->request->post())) {
-                $model->getPostData();
+                $model->savePost($model->getPostData());
                 return $this->redirect(['index', 'id' => $model->id]);
             } else {
                 return $this->render('create', [
@@ -166,8 +163,8 @@ class PostController extends Controller
         $model = $this->findModel($id);
         // If this is an author or an admin
         if($model->checkUDPrivilegies($model)) {
-
-            if ($model->load(Yii::$app->request->post()) && $model->save()) {
+            if ($model->load(Yii::$app->request->post())) {
+                $model->savePost($model);
                 return $this->redirect(['view', 'id' => $model->id]);
             } else {
                 return $this->render('update', [
@@ -190,8 +187,11 @@ class PostController extends Controller
         $model = $this->findModel($id);
         // If this is an author or an admin
         if($model->checkUDPrivilegies($model)) {
-            $model->delete();
-            return $this->redirect('@app/views/posts/index.php');
+            $model->deletePost($model);
+            if($route == 'index')
+                return $this->redirect(['index']);
+            else
+                return $this->redirect(['ourposts', ['status' => $route]]);
         } else {
             return $this->redirect('@app/views/site/login.php');
         }

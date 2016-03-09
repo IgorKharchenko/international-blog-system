@@ -238,6 +238,42 @@ class Comment extends \yii\db\ActiveRecord
     }
 
     /**
+     * Do transaction which saves a model
+     * @param $model
+     * @return bool true if a transaction is successful
+     */
+    public function saveComment($model)
+    {
+        $transaction = Yii::$app->db->beginTransaction();
+        if($model->save())
+        {
+            $transaction->commit();
+            return true;
+        } else {
+            $transaction->rollBack();
+            return false;
+        }
+    }
+
+    /**
+     * Do transaction which saves a model
+     * @param $model
+     * @return bool true if a transaction is successful
+     */
+    public function deleteComment($model)
+    {
+        $transaction = Yii::$app->db->beginTransaction();
+        if($model->delete())
+        {
+            $transaction->commit();
+            return true;
+        } else {
+            $transaction->rollBack();
+            return false;
+        }
+    }
+
+    /**
      * Checks if user has Create Comment privilegies
      * @return bool
      */

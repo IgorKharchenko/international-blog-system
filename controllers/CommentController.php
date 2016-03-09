@@ -7,6 +7,7 @@ use Yii;
 use app\models\Comment;
 use yii\data\ActiveDataProvider;
 use yii\web\Controller;
+use yii\web\HttpException;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
 
@@ -42,6 +43,7 @@ class CommentController extends Controller
     /**
      * Creates a new Comment model.
      * If creation is successful, the browser will be redirected to the 'view' page.
+     * @throws HttpException if transaction is unsuccessful
      * @return mixed
      */
     public function actionCreate($post_id)
@@ -49,9 +51,12 @@ class CommentController extends Controller
         $model = new Comment();
         $post = Post::findOne($post_id);
         if($model->checkCPrivilegies()) {
-            if ($model->load(Yii::$app->request->post()) && $model->save()) {
-                $model->updateCommentsCount($post, "count++");
-                return $this->redirect(['post\view', 'id' => $model->id]);
+            if ($model->load(Yii::$app->request->post())) {
+                if($model->saveComment($model)) {
+                    $model->updateCommentsCount($post, "count++");
+                    return $this->redirect(['post\view', 'id' => $model->id]);
+                }
+                else throw new HttpException(400, 'Error during save comment info in the database');
             } else {
                 return $this->render('create', [
                     'model' => $model,
@@ -66,14 +71,18 @@ class CommentController extends Controller
      * Updates an existing Comment.
      * If update is successful, the browser will be redirected to the 'view' page.
      * @param string $id
+     * @throws HttpException if transaction is rollbacked
      * @return mixed
      */
     public function actionUpdate($id, $post_id=null)
     {
         $model = $this->findModel($id);
         if($model->checkUDPrivilegies($model)) {
-            if ($model->load(Yii::$app->request->post()) && $model->save()) {
-                return $this->redirect(['post/view', 'id' => $post_id]);
+            if ($model->load(Yii::$app->request->post())) {
+                if($model->saveComment($model))
+                    return $this->redirect(['post/view', 'id' => $post_id]);
+                else
+                    throw new HttpException(400, 'Error during saving comment info in the database');
             } else {
                 return $this->render('update', [
                     'model' => $model,
@@ -88,6 +97,7 @@ class CommentController extends Controller
      * Deletes an existing Comment model.
      * If deletion is successful, the browser will be redirected to the 'index' page.
      * @param string $id
+     * @throws HttpException if transaction is rollbacked
      * @return mixed
      */
     public function actionDelete($id, $post_id=null)
@@ -95,9 +105,11 @@ class CommentController extends Controller
         $model = $this->findModel($id);
         $post = Post::findOne($post_id);
         if($model->checkUDPrivilegies($model)) {
-            $model->updateCommentsCount($post, "count--");
-            $model->delete();
-            return $this->redirect('@app/views/post/view.php?id='.$post_id.'&status=ok');
+            if($model->saveComment($model)) {
+                $model->updateCommentsCount($post, "count--");
+                return $this->redirect(['post/view', 'id' => $post_id]);
+            }
+            else throw new HttpException(400, 'Error during saving comment info in the database');
         } else {
             return $this->redirect('@app/views/site/login.php');
         }

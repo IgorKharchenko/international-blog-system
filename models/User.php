@@ -6,6 +6,7 @@ use yii\base\NotSupportedException;
 use yii\behaviors\TimestampBehavior;
 use yii\db\ActiveRecord;
 use yii\web\IdentityInterface;
+use yii\helpers\Html;
 use yii\helpers\ArrayHelper;
 
 /**
@@ -80,17 +81,6 @@ class User extends ActiveRecord implements IdentityInterface
     }
 
     /**
-     * Finds if there are any admins in the blog
-     * @return bool
-     */
-    public function alreadyHasAdmins()
-    {
-        $auth = Yii::$app->authManager;
-        $getAlreadyHasAdmins = $auth->getUserIdsByRole('admin');
-        return empty($getAlreadyHasAdmins) ? $alreadyHasAdmins = false : $alreadyHasAdmins = true;
-    }
-
-    /**
      * Finds if current user is an admin(haves an admin rights)
      * @return bool
      */
@@ -123,25 +113,100 @@ class User extends ActiveRecord implements IdentityInterface
      * @param $id| ID of selected user
      * @param $role
      */
-    public function setRole($id, $role)
+    public function setRole($id, $setRole)
     {
         $auth = Yii::$app->authManager;
         $authorRole = $auth->getRole('author');
         $adminRole = $auth->getRole('admin');
         $getRoles = $auth->getRolesByUser($id);
-        if($role != null) {
-            if($role == 'admin') {
+        if($setRole != null) {
+            if($setRole == 'admin') {
                 if(ArrayHelper::getValue($getRoles, 'author'))
                     $auth->revoke($authorRole, $id);
                 if(ArrayHelper::getValue($getRoles, 'admin') == null)
                     $auth->assign($adminRole, $id);
-            } elseif($role == 'author') {
+            } elseif($setRole == 'author') {
                 if(ArrayHelper::getValue($getRoles, 'admin'))
                     $auth->revoke($adminRole, $id);
                 if(ArrayHelper::getValue($getRoles, 'author') == null)
                     $auth->assign($authorRole, $id);
             }
         }
+    }
+    /**
+     * Do transaction which saves a model
+     * @param $model
+     * @return bool true if a transaction is successful
+     */
+    public function saveUser($model)
+    {
+        $transaction = Yii::$app->db->beginTransaction();
+        if($model->save())
+        {
+            $transaction->commit();
+            return true;
+        } else {
+            $transaction->rollBack();
+            return false;
+        }
+    }
+
+    /**
+     * Do transaction which deletes a model
+     * @param $model
+     * @return bool true if a transaction is successful
+     */
+    public function deleteUser($model)
+    {
+        $transaction = Yii::$app->db->beginTransaction();
+        if($model->delete())
+        {
+            $transaction->commit();
+            return true;
+        } else {
+            $transaction->rollBack();
+            return false;
+        }
+    }
+
+    /**
+     * Updates last login timestamp
+     */
+    private function setLastLoginTimestamp()
+    {
+        $this->last_login = time();
+    }
+
+    /**
+     * Searches username by user ID
+     * @param $array| All users that will be displayed
+     * @param $id| ID of selected user
+     * @return string| string Username of selected user
+     */
+    public function searchUsernameById($array, $id)
+    {
+        $i = 0;
+        do
+        if($array[$i]['id'] == $id)
+            return $array[$i]['username'];
+        while(++$i < count($array));
+    }
+
+    /**
+     * Gets all the data of the user (user/create)
+     */
+    public function getUserData()
+    {
+        $user = new User;
+        $user->username = $this->username;
+        $user->email = $this->email;
+        $user->full_name = $this->full_name;
+        $user->country_id = $this->country_id;
+        $user->city = $this->city;
+        $user->about = $this->about;
+        $user->last_login = $this->setLastLoginTimestamp();
+
+        return $user;
     }
 
     /**
@@ -161,21 +226,6 @@ class User extends ActiveRecord implements IdentityInterface
         } else {
             return false;
         }
-    }
-
-    /**
-     * Searches username by user ID
-     * @param $array| All users that will be displayed
-     * @param $id| ID of selected user
-     * @return string| string Username of selected user
-     */
-    public function searchUsernameById($array, $id)
-    {
-        $i = 0;
-        do
-            if($array[$i]['id'] == $id)
-                return $array[$i]['username'];
-        while(++$i < count($array));
     }
 
     /**

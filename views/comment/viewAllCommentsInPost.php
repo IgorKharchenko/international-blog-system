@@ -13,7 +13,9 @@ use yii\widgets\Pjax;
 
 ?>
 <div class="comment-view">
-    <h2>Comments (<?= $model->comments_count ?>)</h2>
+    <h2>
+        Comments (<?= $model->comments_count ?>)
+    </h2>
     <?php foreach($comments as $comment): ?>
 
         <?php $formatter = Yii::$app->formatter;

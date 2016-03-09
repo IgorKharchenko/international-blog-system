@@ -13,7 +13,6 @@ use yii\helpers\ArrayHelper;
  * @property string $title
  * @property string $anons
  * @property string $content
- * @property integer $category_id
  * @property integer $author_id
  * @property integer $publish_status
  * @property integer $publish_date
@@ -36,7 +35,6 @@ class Post extends \yii\db\ActiveRecord
         return [
             [['title'], 'required'],
             [['anons', 'content', 'publish_status'], 'string'],
-            [['category_id', 'author_id'], 'integer'],
             [['publish_date'], 'safe'],
             [['title'], 'string', 'max' => 255]
         ];
@@ -52,7 +50,6 @@ class Post extends \yii\db\ActiveRecord
             'title' => 'Title',
             'anons' => 'Anons',
             'content' => 'Content',
-            'category_id' => 'Category ID',
             'author_id' => 'Author ID',
             'publish_status' => 'Publish Status',
             'publish_date' => 'Publish Date',
@@ -80,11 +77,9 @@ class Post extends \yii\db\ActiveRecord
         $post->title = $this->title;
         $post->anons = $this->anons;
         $post->content = $this->content;
-        $post->category_id = $this->category_id;
         $post->author_id = Yii::$app->user->id;
         $post->publish_status = $this->publish_status;
         $post->publish_date = time();
-        $post->save();
 
         return $post;
     }
@@ -185,6 +180,42 @@ class Post extends \yii\db\ActiveRecord
             return $posts = $query
                 ->where('publish_status=:status', [':status' => $status])
                 ->andWhere('author_id=:author_id', [':author_id' => Yii::$app->user->id]);
+        }
+    }
+
+    /**
+     * Do transaction which saves a model
+     * @param $model
+     * @return bool true if a transaction is successful
+     */
+    public function savePost($model)
+    {
+        $transaction = Yii::$app->db->beginTransaction();
+        if($model->save())
+        {
+            $transaction->commit();
+            return true;
+        } else {
+            $transaction->rollBack();
+            return false;
+        }
+    }
+
+    /**
+     * Do transaction which deletes a model
+     * @param $model
+     * @return bool true if a transaction is successful
+     */
+    public function deletePost($model)
+    {
+        $transaction = Yii::$app->db->beginTransaction();
+        if($model->delete())
+        {
+            $transaction->commit();
+            return true;
+        } else {
+            $transaction->rollBack();
+            return false;
         }
     }
 

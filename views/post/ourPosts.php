@@ -28,7 +28,7 @@ $this->params['breadcrumbs'][] = "Our Post Overview";
     <?php $formatter = Yii::$app->formatter; ?>
 
     <?php foreach($posts as $post): ?>
-        <h4><?= Html::a("{$post->title}", ['post/view', 'id' => $post->id]) ?></h4>
+        <h4><?= Html::a(Html::encode("{$post->title}"), ['post/view', 'id' => $post->id]) ?></h4>
         <h5><?= Html::encode("{$post->anons}") ?></h5>
 
         <b><?= Icon::show('user') . $post_author->username ?></b>

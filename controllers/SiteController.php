@@ -93,7 +93,6 @@ class SiteController extends Controller
         if (!\Yii::$app->user->isGuest) {
             return $this->goHome();
         }
-
         $model = new LoginForm();
         if ($model->load(Yii::$app->request->post()) && $model->login()) {
             return $this->goBack();
@@ -105,6 +104,9 @@ class SiteController extends Controller
 
     public function actionLogout()
     {
+        $user = User::findOne(Yii::$app->user->id);
+        $user->last_login = time();
+        $user->saveUser($user);
         Yii::$app->user->logout();
 
         return $this->goHome();
@@ -139,20 +141,19 @@ class SiteController extends Controller
      */
     public function actionAdmin()
     {
-        $model = new User;
-        $isAdmin = $model->isAdmin();
-        $alreadyHasAdmins = $model->alreadyHasAdmins();
+        $user = new User;
+        $isAdmin = $user->isAdmin();
 
         # True if we DON'T have any admins or current user is an admin
         if(!Yii::$app->user->isGuest) {
-            if(!$alreadyHasAdmins || $isAdmin) {
+            if($isAdmin) {
                 return $this->render('admin', [
-                    'model' => $model,
+                    'model' => $user,
                     'assign_permitted' => true,
                 ]);
             } else {
                 return $this->render('admin', [
-                    'model' => $model,
+                    'model' => $user,
                     'assign_permitted' => false,
                 ]);
             }

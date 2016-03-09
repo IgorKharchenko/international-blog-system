@@ -30,7 +30,7 @@ AppAsset::register($this);
     <?php
     \Yii::$app->language = 'ru-RU';
     NavBar::begin([
-        'brandLabel' => Icon::show('home') . 'Igor Blog',
+        'brandLabel' => Icon::show('home') . 'Igor International Blog',
         'brandUrl' => Yii::$app->homeUrl,
         'options' => [
             'class' => 'my-navbar navbar-fixed-top',
@@ -70,7 +70,7 @@ AppAsset::register($this);
 
 <footer class="footer">
     <div class="container">
-        <p class="pull-left">&copy; Igor Blog <?= date('Y') ?></p>
+        <p class="pull-left">&copy; Igor International Blog, <?= date('Y') ?></p>
 
         <p class="pull-right"><?= Yii::powered() ?></p>
     </div>

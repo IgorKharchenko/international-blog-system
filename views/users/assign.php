@@ -25,7 +25,7 @@ $this->params['breadcrumbs'][] = $this->title;
     <?php if($setRole): ?>
         <?= Alert::widget([
             'options' => ['class' => 'alert-success'],
-            'body' => 'User has been assigned to <b>' .$setRole. '</b> role!',
+            'body' => 'User '.$assigned_user->username.' has been assigned to <b>' .$setRole. '</b> role!',
         ]); ?>
     <?php endif; ?>
 
@@ -33,8 +33,8 @@ $this->params['breadcrumbs'][] = $this->title;
         <?= Alert::widget([
             'options' => ['class' => 'alert-info'],
             'body' => "<p>In this page you can assign roles to others.</p>
-                        <p>This page is accessible to authors <b>only</b>
-                        if there aren't any registered admins.</p>"
+                        <p>To init this page, you need run <b>yii rbac/init-first-admin [id]</b>
+                        where id is your ID (without brackets).</p>"
         ]); ?>
 
         <br/><br/>
@@ -54,16 +54,14 @@ $this->params['breadcrumbs'][] = $this->title;
                     'format' => 'raw',
                 ],
                 [
-                'attribute' => 'assignToAuthor',
-                'value' => function($data) {
-                    return Html::a('Assign To Author role',Url::to(['users/assign', 'id' => $data->id, 'role' => 'author']));
-                },
-                'format' => 'raw',
-            ]
+                    'attribute' => 'assignToAuthor',
+                    'value' => function($data) {
+                        return Html::a('Assign To Author role',Url::to(['users/assign', 'id' => $data->id, 'role' => 'author']));
+                        },
+                    'format' => 'raw',
+                ],
             ],
         ]); ?>
-
-        <?= LinkPager::widget(['pagination' => $pagination]) ?>
 
     <?php endif; ?>
 
