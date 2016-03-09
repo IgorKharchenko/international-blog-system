@@ -9,14 +9,12 @@ An admin can do anything he need excluding, obviously, viewing user password has
 
 Authors can make drafts and published posts.
 
-Also the blog contains admin privilegies assignment, which works if the command `yii rbac/init-first-admin [id]` was send.
+Also the blog contains admin privilegies assignment page, which works if the command `yii rbac/init-first-admin [id]` was send.
 
 TODO
 ----
-	— I need to combine User and Users CRUD's, because I'm very layed an egg with this;
 	— Timezone check is needed;
-	— $user->last_login not must be NULL in the DataBase;
-	— Country selecting will be maked tomorrow
+	— Show Email checkbox is needed.
 
 P.S. 
 ----

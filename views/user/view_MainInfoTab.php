@@ -22,7 +22,7 @@ use yii\bootstrap\Tabs;
             'email:email',
             [
                 'label' => 'Last Login',
-                'value' => $formatter->asDatetime($model->last_login),
+                'value' => ($model->last_login) ? $formatter->asDatetime($model->last_login) : $formatter->asDatetime(time()),
             ],
         ],
     ]) ?>

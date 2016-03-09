@@ -42,11 +42,11 @@ $this->params['breadcrumbs'][] = $model->username;
 
     <?php if($model->checkUDPrivilegies($model)): ?>
         <!-- Update User Info Button -->
-        <?= Html::a('Update User Info', ['users/update', 'id' => $model->id], ['class' => 'btn-lg btn-info']); ?>
+        <?= Html::a('Update User Info', ['user/update', 'id' => $model->id], ['class' => 'btn-lg btn-info']); ?>
         <!-- End Button -->
     <br/><br/>
         <!-- Delete User Button -->
-        <?= Html::a('Delete this user', ['users/delete', 'id' => $model->id], [
+        <?= Html::a('Delete this user', ['user/delete', 'id' => $model->id], [
             'class' => 'btn-xs btn-danger',
             'data' => [
                 'confirm' => 'Are you sure you want to delete your own page?',

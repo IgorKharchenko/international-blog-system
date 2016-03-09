@@ -32,7 +32,7 @@ $this->params['breadcrumbs'][] = $this->title;
                     'attribute' => 'View',
                     'format' => 'raw',
                     'value' => function($data){
-                    return Html::a('View',Url::to(['users/view', 'id' => $data->id]));
+                    return Html::a('View',Url::to(['user/view', 'id' => $data->id]));
             }],
         ],
     ]); ?>

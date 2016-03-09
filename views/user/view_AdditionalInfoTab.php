@@ -13,11 +13,11 @@ use yii\bootstrap\Tabs;
     <?= DetailView::widget([
         'model' => $model,
         'attributes' => [
-            'full_name',
-            'sex',
+            ['label' => 'Full Name', 'value' => ($model->full_name) ? $model->full_name : 'Not Set'],
+            ['label' => 'Sex', 'value' => ($model->sex) ? $model->sex : 'Not Set'],
             'country_id',
-            'city',
-            'about',
+            ['label' => 'City', 'value' => ($model->city) ? $model->city : 'Not Set'],
+            ['label' => 'About Yourself', 'value' => ($model->about) ? $model->about : 'Not Set'],
         ],
     ]) ?>
     </div>

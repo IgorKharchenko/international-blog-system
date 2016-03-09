@@ -49,14 +49,14 @@ $this->params['breadcrumbs'][] = $this->title;
                 [
                     'attribute' => 'assignToAdmin',
                     'value' => function($data) {
-                        return Html::a('Assign To Admin role',Url::to(['users/assign', 'id' => $data->id, 'role' => 'admin']));
+                        return Html::a('Assign To Admin role',Url::to(['user/assign', 'id' => $data->id, 'role' => 'admin']));
                         },
                     'format' => 'raw',
                 ],
                 [
                     'attribute' => 'assignToAuthor',
                     'value' => function($data) {
-                        return Html::a('Assign To Author role',Url::to(['users/assign', 'id' => $data->id, 'role' => 'author']));
+                        return Html::a('Assign To Author role',Url::to(['user/assign', 'id' => $data->id, 'role' => 'author']));
                         },
                     'format' => 'raw',
                 ],

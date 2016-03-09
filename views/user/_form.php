@@ -2,6 +2,7 @@
 
 use yii\helpers\Html;
 use yii\widgets\ActiveForm;
+use dosamigos\ckeditor\CKEditor;
 
 /* @var $this yii\web\View */
 /* @var $model app\models\Users */
@@ -25,6 +26,11 @@ use yii\widgets\ActiveForm;
     <!-- Form field for country was here -->
 
     <?= $form->field($model, 'city')->textInput(['maxlength' => true]) ?>
+
+    <?= $form->field($model, 'about')->widget(CKEditor::className(), [
+        'options' => ['rows' => 8, 'columns' => 10],
+        'preset' => 'basic',
+    ]) ?>
 
     <div class="form-group">
         <?= Html::submitButton($model->isNewRecord ? 'Create' : 'Update', ['class' => $model->isNewRecord ? 'btn btn-success' : 'btn btn-primary']) ?>
