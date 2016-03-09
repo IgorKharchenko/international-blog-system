@@ -3,6 +3,7 @@
 use yii\helpers\Html;
 use yii\widgets\DetailView;
 use yii\widgets\Pjax;
+use yii\bootstrap\Tabs;
 
 /* @var $this yii\web\View */
 /* @var $model app\models\Users */
@@ -14,31 +15,29 @@ $this->params['breadcrumbs'][] = $model->username;
 <?php Pjax::begin(); ?>
 <div class="users-view">
 
+
+    <?= \cebe\gravatar\Gravatar::widget([
+        'email' => $model->email,
+        'options' => [
+            'alt' => $model->username,
+        ],
+        'size' => 150,
+    ]) ?>
     <h1>User Page</h1>
 
-    <?php if($model->checkUDPrivilegies($model) == true): ?>
-        <?= DetailView::widget([
-            'model' => $model,
-            'attributes' => [
-                'id',
-                'username',
-                'email:email',
-                'created_at:datetime',
-                'updated_at:datetime',
+    <?php
+        echo Tabs::widget([
+        'items' => [
+            [
+                'label' => 'Main Info',
+                'content' => $this->render('view_MainInfoTab', ['model' => $model]),
             ],
-        ]) ?>
-    <?php endif; ?>
-    <?php if($model->checkUDPrivilegies($model) == false): ?>
-        <?= DetailView::widget([
-            'model' => $model,
-            'attributes' => [
-                'id',
-                'username',
-                'created_at:datetime',
-                'updated_at:datetime',
+            [
+                'label' => 'Additional Info',
+                'content' => $this->render('view_AdditionalInfoTab', ['model' => $model]),
             ],
-        ]) ?>
-    <?php endif; ?>
+        ],
+    ]); ?>
 
 
     <?php if($model->checkUDPrivilegies($model)): ?>
