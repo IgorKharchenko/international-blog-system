@@ -1,7 +1,56 @@
 <?php
+namespace app\models;
+
+use Yii;
+use yii\base\NotSupportedException;
+use yii\behaviors\TimestampBehavior;
+use yii\db\Query;
+use yii\db\ActiveRecord;
+use yii\web\IdentityInterface;
+use yii\helpers\Html;
+use yii\helpers\ArrayHelper;
+
 /**
- * Created by PhpStorm.
- * User: Игорь
- * Date: 09.03.2016
- * Time: 22:43
+ * User model
+ *
+ * @property integer $id
+ * @property string $name_ru
+ * @property string $name_en
+ * @property string $code
  */
+class EarthCountries extends ActiveRecord
+{
+    /**
+     * @inheritdoc
+     */
+    public static function tableName()
+    {
+        return '{{%earth_countries}}';
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function attributeLabels()
+    {
+        return [
+            'id' => 'ID',
+            'name_ru' => 'Country Name [RU]',
+            'name_en' => 'Country Name [EN]',
+            'code' => 'Country Code',
+        ];
+    }
+
+    /**
+     * Gets all the countries in one DepDrop Widget
+     */
+    public static function getCountriesList()
+    {
+        $query = new Query;
+        return EarthCountries::find()
+            ->select('id, name_en')
+            ->orderBy('name_en')
+            ->all();
+    }
+
+}

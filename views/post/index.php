@@ -31,7 +31,7 @@ $this->params['breadcrumbs'][] = $this->title;
         <br/>
         <?php $formatter = Yii::$app->formatter; ?>
         <h5>
-            <?= Icon::show('user') . Html::a(Html::encode($authors_model->searchUsernameById($authors_info, $post->author_id)), ['users/view', 'id' => $post->author_id]) ?>
+            <?= Icon::show('user') . Html::a(Html::encode($authors_model->searchUsernameById($authors_info, $post->author_id)), ['user/view', 'id' => $post->author_id]) ?>
             |  <?= Icon::show('calendar') . $formatter->asDatetime($post->publish_date) ?>
             |  <?= Icon::show('comment') . $post->comments_count ?>
 

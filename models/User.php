@@ -4,6 +4,7 @@ namespace app\models;
 use Yii;
 use yii\base\NotSupportedException;
 use yii\behaviors\TimestampBehavior;
+use yii\db\Query;
 use yii\db\ActiveRecord;
 use yii\web\IdentityInterface;
 use yii\helpers\Html;
@@ -17,12 +18,16 @@ use yii\helpers\ArrayHelper;
  * @property string $password_hash
  * @property string $password_reset_token
  * @property string $email
+ * @property integer $show_email
  * @property string $auth_key
  * @property integer $status
- * @property integer $role
  * @property integer $created_at
  * @property integer $updated_at
- * @property string $password write-only password
+ * @property string $full_name
+ * @property string $sex
+ * @property integer $country_id
+ * @property string $city
+ * @property string $about
  */
 class User extends ActiveRecord implements IdentityInterface
 {
@@ -60,20 +65,49 @@ class User extends ActiveRecord implements IdentityInterface
     public function rules()
     {
         return [
+            [['username', 'email', 'auth_key', 'status'], 'required'],
+            [['status', 'country_id'], 'integer'],
             ['status', 'default', 'value' => self::STATUS_ACTIVE],
             ['status', 'in', 'range' => [self::STATUS_ACTIVE, self::STATUS_DELETED]],
+            [['created_at', 'updated_at'], 'safe'],
+            [['username', 'password_hash', 'password_reset_token', 'email', 'auth_key', 'full_name', 'city'], 'string', 'max' => 255],
+            [['about'], 'string'],
+        ];
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function attributeLabels()
+    {
+        return [
+            'id' => 'ID',
+            'username' => 'Username',
+            'password_hash' => 'Password Hash',
+            'password_reset_token' => 'Password Reset Token',
+            'email' => 'Email',
+            'show_email' => 'Show Email to other users',
+            'auth_key' => 'Auth Key',
+            'status' => 'Status',
+            'created_at' => 'Created At',
+            'updated_at' => 'Updated At',
+            'full_name' => 'Full Name',
+            'sex' => 'Sex',
+            'country_id' => 'Country ID',
+            'city' => 'City',
+            'about' => 'About Yourself',
         ];
     }
 
     /*
-    * Autoupdate created_at and updated_at fields.
+    * Autoupdate created_at and updated_at fields before saving.
     */
     public function beforeSave($insert)
     {
         if (parent::beforeSave($insert)) {
             if($insert)
-                $this->created_at = date('U');
-            $this->updated_at = date('U');
+                $this->created_at = time();
+            $this->updated_at = time();
             return true;
         } else {
             return false;
@@ -179,7 +213,7 @@ class User extends ActiveRecord implements IdentityInterface
 
     /**
      * Searches username by user ID
-     * @param $array| All users that will be displayed
+     * @param $array| All user that will be displayed
      * @param $id| ID of selected user
      * @return string| string Username of selected user
      */
@@ -210,9 +244,9 @@ class User extends ActiveRecord implements IdentityInterface
     }
 
     /**
-     * Finds all users where 'id' IN (string).
+     * Finds all user where 'id' IN (string).
      * @param $author_IDs| String contains all user ID's
-     * @return array|\yii\db\ActiveRecord[] Returns an array contains info about all users
+     * @return array|\yii\db\ActiveRecord[] Returns an array contains info about all user
      */
     public function findByAuthorIDs ($author_IDs)
     {
@@ -238,7 +272,7 @@ class User extends ActiveRecord implements IdentityInterface
     }
 
     /**
-     * Find identity by access token is not must to be implemented
+     * Find identity by access token is not must be implemented
      * @inheritdoc
      */
     public static function findIdentityByAccessToken($token, $type = null)
@@ -287,6 +321,15 @@ class User extends ActiveRecord implements IdentityInterface
         $timestamp = (int) substr($token, strrpos($token, '_') + 1);
         $expire = Yii::$app->params['user.passwordResetTokenExpire'];
         return $timestamp + $expire >= time();
+    }
+
+    /**
+     * Sets $user->show_email property
+     * @param string $mode True or false
+     */
+    public function setShowEmailProperty($mode = 'false')
+    {
+        $this->show_email = $mode;
     }
 
     /**
@@ -359,12 +402,12 @@ class User extends ActiveRecord implements IdentityInterface
     }
 
     /**
-     * Checks user privilegies for update/delete users or own user info
+     * Checks user privilegies for update/delete user or own user info
      * @return bool
      */
-    public function checkUDPrivilegies()
+    public function checkUDPrivilegies($user)
     {
-        return ((Yii::$app->user->can('updateOwnUser', ['user' => new User]) || Yii::$app->user->can('updateUser'))
-            && (Yii::$app->user->can('deleteOwnUser', ['user' => new User]) || Yii::$app->user->can('deleteUser')));
+        return ((Yii::$app->user->can('updateOwnUser', ['user' => $user]) || Yii::$app->user->can('updateUser'))
+            && (Yii::$app->user->can('deleteOwnUser', ['user' => $user]) || Yii::$app->user->can('deleteUser')));
     }
 }

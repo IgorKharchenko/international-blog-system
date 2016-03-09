@@ -14,12 +14,14 @@ use yii\bootstrap\Tabs;
         'model' => $model,
         'attributes' => [
             'username',
-            'email:email',
+            [
+                'label' => 'Email',
+                'value' => ($model->show_email) ? $model->email : 'User had hided own email.',
+            ],
             [
                 'label' => 'Registration Date',
                 'value' => $formatter->asDatetime($model->created_at),
             ],
-            'email:email',
             [
                 'label' => 'Last Login',
                 'value' => ($model->last_login) ? $formatter->asDatetime($model->last_login) : $formatter->asDatetime(time()),

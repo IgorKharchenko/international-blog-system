@@ -2,8 +2,8 @@
 
 namespace app\controllers;
 
-use app\models\Post;
 use Yii;
+use app\models\Post;
 use app\models\Comment;
 use yii\data\ActiveDataProvider;
 use yii\web\Controller;

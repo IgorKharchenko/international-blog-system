@@ -10,7 +10,6 @@ use app\models\LoginForm;
 use app\models\SignupForm;
 use app\models\Post;
 use app\models\User;
-use app\models\Comment;
 use yii\data\Pagination;
 use yii\helpers\ArrayHelper;
 
@@ -95,6 +94,9 @@ class SiteController extends Controller
         }
         $model = new LoginForm();
         if ($model->load(Yii::$app->request->post()) && $model->login()) {
+            $user = User::findOne(Yii::$app->user->id);
+            $user->last_login = time();
+            $user->saveUser($user);
             return $this->goBack();
         }
         return $this->render('login', [
@@ -104,9 +106,6 @@ class SiteController extends Controller
 
     public function actionLogout()
     {
-        $user = User::findOne(Yii::$app->user->id);
-        $user->last_login = time();
-        $user->saveUser($user);
         Yii::$app->user->logout();
 
         return $this->goHome();
@@ -134,7 +133,7 @@ class SiteController extends Controller
 
     /**
      * Admin panel.
-     * and assignment to other users.
+     * and assignment to other user.
      * @var $alreadyRegistered true if an admin privilegies have been assigned to ANY registered user in the blog
      * @var isAdmin true if current user already have an admin rights
      * @return string

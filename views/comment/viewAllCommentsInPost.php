@@ -24,7 +24,7 @@ use yii\widgets\Pjax;
               unset($tmp_comment); ?>
         <hr/>
         <h5>
-        <?= Icon::show('user') . Html::a($comments_authors_model->searchUsernameById($comments_authors_info, $comment->author_id), ['users/view', 'id' => $comment->author_id]) ?>
+        <?= Icon::show('user') . Html::a($comments_authors_model->searchUsernameById($comments_authors_info, $comment->author_id), ['user/view', 'id' => $comment->author_id]) ?>
         |  <?= Icon::show('calendar') . $formatter->asDatetime($comment->publish_date) ?>
         <?php if($userHasPrivilegies_Comment): ?>
             |

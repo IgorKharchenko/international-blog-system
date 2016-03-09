@@ -60,4 +60,13 @@ return [
     21 => [
         'author',
     ],
+    32 => [
+        'author',
+    ],
+    '' => [
+        'author',
+    ],
+    33 => [
+        'author',
+    ],
 ];

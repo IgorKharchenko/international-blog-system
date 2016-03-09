@@ -9,7 +9,6 @@ use yii\bootstrap\Tabs;
 /* @var $model app\models\Users */
 
 $this->title = 'Info about user ' . $model->username;
-$this->params['breadcrumbs'][] = ['label' => 'Users', 'url' => ['index']];
 $this->params['breadcrumbs'][] = $model->username;
 ?>
 <?php Pjax::begin(); ?>

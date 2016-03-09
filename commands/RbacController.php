@@ -9,7 +9,7 @@ use yii\helpers\ArrayHelper;
 class RbacController extends Controller
 {
     /**
-     * Creates all rules and roles of users of this blog.
+     * Creates all rules and roles of user of this blog.
      */
     public function actionInit()
     {

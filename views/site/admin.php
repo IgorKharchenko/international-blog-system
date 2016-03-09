@@ -21,6 +21,10 @@ $this->title = 'Admin Page';
                     'label' => 'Posts',
                     'content' => $this->render('admin_PostsTab'),
                 ],
+                [
+                    'label' => 'Settings',
+                    'content' => $this->render('admin_SettingsTab'),
+                ],
             ],
         ]);
     ?>

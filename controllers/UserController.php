@@ -2,19 +2,20 @@
 
 namespace app\controllers;
 
+use app\models\EarthCountries;
 use Yii;
 use app\models\User;
-use app\models\Users;
 use yii\data\ActiveDataProvider;
 use yii\data\Pagination;
 use yii\helpers\ArrayHelper;
+use yii\helpers\Json;
 use yii\web\Controller;
 use yii\web\HttpException;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
 
 /**
- * UsersController implements the CRUD actions for Users model.
+ * UserController implements the CRUD actions for Users model.
  */
 class UserController extends Controller
 {
@@ -31,7 +32,7 @@ class UserController extends Controller
     }
 
     /**
-     * Lists all Users models.
+     * Lists all User models.
      * @return mixed
      */
     public function actionIndex()
@@ -42,7 +43,7 @@ class UserController extends Controller
                 'totalCount' => User::find()->count(),
             ]);
             $dataProvider = new ActiveDataProvider([
-                'query' => Users::find(),
+                'query' => User::find(),
                 'pagination' => [
                     'pageSize' => 10,
                 ]
@@ -57,7 +58,7 @@ class UserController extends Controller
     }
 
     /**
-     * Displays a single Users model.
+     * Displays a single User model.
      * @param integer $id
      * @return mixed
      */
@@ -74,17 +75,16 @@ class UserController extends Controller
     }
 
     /**
-     * Creates a new Users model.
+     * Creates a new User model.
      * If creation is successful, the browser will be redirected to the 'view' page.
      * @throws HttpException if transaction is unsuccessful
      * @return mixed
      */
     public function actionCreate()
     {
-        $model = new Users;
+        $model = new User;
         if ($model->load(Yii::$app->request->post())) {
-            $user = new User;
-            if($user->saveUser($model))
+            if($model->saveUser($model))
                 return $this->redirect(['view', 'id' => $model->id]);
             else
                 throw new HttpException(400, 'Error during saving comment info in the database');
@@ -96,7 +96,7 @@ class UserController extends Controller
     }
 
     /**
-     * Updates an existing Users model.
+     * Updates an existing User model.
      * If update is successful, the browser will be redirected to the 'view' page.
      * @param integer $id
      * @throws HttpException if transaction is unsuccessful
@@ -108,10 +108,9 @@ class UserController extends Controller
         if(!Yii::$app->user->isGuest && $model->checkUDPrivilegies($model)) {
 
             if ($model->load(Yii::$app->request->post())) {
-                $user = User::findIdentity($id);
-                $user->updated_at = time();
-                if($user->saveUser($model))
+                if($model->saveUser($model)) {
                     return $this->redirect(['view', 'id' => $model->id]);
+                }
                 else
                     throw new HttpException(400, 'Error during saving comment info in the database');
             } else {
@@ -135,8 +134,7 @@ class UserController extends Controller
     {
         $model = $this->findModel($id);
         if(!Yii::$app->user->isGuest && $model->checkUDPrivilegies($model)) {
-            $user = User::findIdentity($id);
-            if($user->saveUser($model))
+            if($model->deleteUser($model))
                 return $this->redirect(['index']);
             else
                 throw new HttpException(400, 'Error during saving comment info in the database');
@@ -196,16 +194,32 @@ class UserController extends Controller
         }
     }
 
+    public function actionShowEmail($mode = 'hide')
+    {
+        $user = $this->findModel(Yii::$app->user->id);
+        if($mode == 'show')
+        {
+            $user->show_email = 1;
+            $user->saveUser($user);
+            return $this->redirect(['site/admin', 'status_em' => 'ok']);
+        } elseif($mode == 'hide')
+        {
+            $user->show_email = 0;
+            $user->saveUser($user);
+            return $this->redirect(['site/admin', 'status_em' => 'ok']);
+        }
+    }
+
     /**
      * Finds the Users model based on its primary key value.
      * If the model is not found, a 404 HTTP exception will be thrown.
      * @param integer $id
-     * @return Users the loaded model
+     * @return User| The loaded model
      * @throws NotFoundHttpException if the model cannot be found
      */
     protected function findModel($id)
     {
-        if (($model = Users::findOne($id)) !== null) {
+        if (($model = User::findOne($id)) !== null) {
             return $model;
         } else {
             throw new NotFoundHttpException('The requested page does not exist.');

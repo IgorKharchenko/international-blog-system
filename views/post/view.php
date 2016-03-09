@@ -25,7 +25,7 @@ $this->params['breadcrumbs'][] = $this->title;
     <?php $formatter = Yii::$app->formatter; ?>
     </br></br>
     <h5>
-            <b><?= Icon::show('user') . Html::a(Html::encode($post_author->username), ['users/view', 'id' => $post_author->id]) ?></b>
+            <b><?= Icon::show('user') . Html::a(Html::encode($post_author->username), ['user/view', 'id' => $post_author->id]) ?></b>
             |  <i><?= Icon::show('calendar') . $formatter->asDatetime($model->publish_date) ?></i>
             <!-- Buttons -->
             <?php if($userHasPrivilegies_Post): ?>

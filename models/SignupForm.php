@@ -1,7 +1,7 @@
 <?php
 namespace app\models;
 
-use app\models\User;
+use yii\helpers\ArrayHelper;
 use yii\base\Model;
 use Yii;
 
@@ -46,18 +46,27 @@ class SignupForm extends Model
         if (!$this->validate()) {
             return null;
         }
-        
+
         $user = new User();
         $user->username = $this->username;
         $user->email = $this->email;
+        $user->created_at = time();
+        $user->last_login = time();
+        $user->status = 10;
         $user->setPassword($this->password);
         $user->generateAuthKey();
         $user->save();
 
         $auth = Yii::$app->authManager;
+        $adminRole = $auth->getRole('admin');
         $authorRole = $auth->getRole('author');
-        $auth->assign($authorRole, ($user->getId()));
-
+        $getRoles = $auth->getRolesByUser($user->getId());
+        if (!is_null($getRoles)) {
+            if (ArrayHelper::getValue($getRoles, 'admin'))
+                $auth->revoke($adminRole, $user->getId());
+            if (ArrayHelper::getValue($getRoles, 'author') == null)
+                $auth->assign($authorRole, $user->getId());
+        }
         return $user;
     }
 }

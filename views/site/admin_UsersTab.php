@@ -13,8 +13,8 @@ $this->title = 'Admin Page';
     <h4> >>> Users Information <<< </h4>
     <?php
         if($assign_permitted):
-            echo Html::a('Assign Privilegies To Users', ['users/assign'], ['class' => 'btn btn-success', 'style' => 'margin:5px']);
+            echo Html::a('Assign Privilegies To Users', ['user/assign'], ['class' => 'btn btn-success', 'style' => 'margin:5px']);
         endif;
-        echo Html::a('List of All Users', ['users/index'], ['class' => 'btn btn-info', 'style' => 'margin:5px']);
+        echo Html::a('List of All Users', ['user/index'], ['class' => 'btn btn-info', 'style' => 'margin:5px']);
     ?>
 </div>
