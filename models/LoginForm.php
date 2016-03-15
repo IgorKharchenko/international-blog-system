@@ -29,6 +29,8 @@ class LoginForm extends Model
             ['rememberMe', 'boolean'],
             // password is validated by validatePassword()
             ['password', 'validatePassword'],
+            // First symbol must contain only english symbols
+            [['username'], 'match', 'pattern' => '/^[a-zA-Z][a-zA-Z0-9_-]*/', 'message' => 'Username can contain only english letters without spaces.'],
         ];
     }
 
