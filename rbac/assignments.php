@@ -69,4 +69,19 @@ return [
     33 => [
         'author',
     ],
+    34 => [
+        'author',
+    ],
+    35 => [
+        'author',
+    ],
+    36 => [
+        'author',
+    ],
+    37 => [
+        'author',
+    ],
+    38 => [
+        'author',
+    ],
 ];

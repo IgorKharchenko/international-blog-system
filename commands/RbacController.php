@@ -21,8 +21,10 @@ class RbacController extends Controller
             @var $userRule — for associating this user ID to user which it belongs to */
         $authorRule = new \app\rbac\AuthorRule;
         $userRule = new \app\rbac\UserRule;
+        $blogRule = new \app\rbac\BlogRule;
         $auth->add($authorRule);
         $auth->add($userRule);
+        $auth->add($blogRule);
 
         # ========================================================================
         # Post permissions
@@ -116,20 +118,43 @@ class RbacController extends Controller
         $deleteOwnComment->ruleName = $authorRule->name;
         $auth->add($deleteOwnComment);
 
+        # ----------------------------------
+        # Blog permissions
+        // add "createBlog" permission
+        $createBlog = $auth->createPermission('createBlog');
+        $createBlog->description = 'Create a blog';
+        $auth->add($createBlog);
+        #
+        // add "updateBlog" permission
+        $updateBlog = $auth->createPermission('updateBlog');
+        $updateBlog->description = 'Update any blog';
+        $auth->add($updateBlog);
+        #
+        // add "updateOwnBlog" permission and associate the rule with it
+        $updateOwnBlog = $auth->createPermission('updateOwnBlog');
+        $updateOwnBlog->description = 'Update own blog';
+        $updateOwnBlog->ruleName = $blogRule->name;
+        $auth->add($updateOwnBlog);
+        #
+        // add "deleteBlog" permission
+        $deleteBlog = $auth->createPermission('deleteBlog');
+        $deleteBlog->description = 'Delete any blog';
+        $auth->add($deleteBlog);
+        #
+        // add "deleteOwnBlog" permission and associate the rule with it
+        $deleteOwnBlog = $auth->createPermission('deleteOwnBlog');
+        $deleteOwnBlog->description = 'Delete own blog';
+        $deleteOwnBlog->ruleName = $blogRule->name;
+        $auth->add($deleteOwnBlog);
+
         # ======================================================================
         # Roles
-        // Unapproved role, only info reading is available
-        $unapproved = $auth->createRole('unapproved');
-        $unapproved->description = 'Unapproved';
-        $auth->add($unapproved);
-        $auth->addChild($unapproved, $readUser);
 
         // Author role
-        // Author can only update\delete THEIR OWN post/comment/user_info
+        // Author can only update\delete THEIR OWN post/comment/user_info/blog
         $author = $auth->createRole('author');
         $author->description = 'Author';
         $auth->add($author);
-        $auth->addChild($author, $unapproved);
         $auth->addChild($author, $createPost);
         $auth->addChild($author, $updateOwnPost);
         $auth->addChild($author, $deleteOwnPost);
@@ -138,6 +163,9 @@ class RbacController extends Controller
         $auth->addChild($author, $deleteOwnComment);
         $auth->addChild($author, $updateOwnUser);
         $auth->addChild($author, $deleteOwnUser);
+        $auth->addChild($author, $createBlog);
+        $auth->addChild($author, $updateOwnBlog);
+        $auth->addChild($author, $deleteOwnBlog);
 
         // Admin role
         // Admin can update\delete ALL the info, that's why I've used replacing childs
@@ -152,14 +180,29 @@ class RbacController extends Controller
         $auth->removeChild($admin, $deleteOwnComment);
         $auth->removeChild($admin, $updateOwnUser);
         $auth->removeChild($admin, $deleteOwnUser);
+        $auth->removeChild($admin, $updateOwnBlog);
+        $auth->removeChild($admin, $deleteOwnBlog);
         $auth->addChild($admin, $updatePost);
         $auth->addChild($admin, $deletePost);
         $auth->addChild($admin, $updateComment);
         $auth->addChild($admin, $deleteComment);
+        $auth->addChild($admin, $createUser);
+        $auth->addChild($admin, $readUser);
         $auth->addChild($admin, $updateUser);
         $auth->addChild($admin, $deleteUser);
-        #
-        $auth->addChild($admin, $createUser);
+        $auth->addChild($admin, $updateBlog);
+        $auth->addChild($admin, $deleteBlog);
+    }
+
+    /**
+     * Trims all roles and rules for overwriting them
+     */
+    public function actionTrimAllRoles()
+    {
+        $auth = Yii::$app->authManager;
+
+        $auth->removeAllRoles();
+        $auth->removeAllRules();
     }
 
     /**
@@ -196,4 +239,6 @@ class RbacController extends Controller
             return 1;
         }
     }
+
+
 }

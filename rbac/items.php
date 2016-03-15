@@ -70,18 +70,32 @@ return [
         'description' => 'Delete own comment',
         'ruleName' => 'isAuthor',
     ],
-    'unapproved' => [
-        'type' => 1,
-        'description' => 'Unapproved',
-        'children' => [
-            'readUser',
-        ],
+    'createBlog' => [
+        'type' => 2,
+        'description' => 'Create a blog',
+    ],
+    'updateBlog' => [
+        'type' => 2,
+        'description' => 'Update any blog',
+    ],
+    'updateOwnBlog' => [
+        'type' => 2,
+        'description' => 'Update own blog',
+        'ruleName' => 'isAuthorBlogRules',
+    ],
+    'deleteBlog' => [
+        'type' => 2,
+        'description' => 'Delete any blog',
+    ],
+    'deleteOwnBlog' => [
+        'type' => 2,
+        'description' => 'Delete own blog',
+        'ruleName' => 'isAuthorBlogRules',
     ],
     'author' => [
         'type' => 1,
         'description' => 'Author',
         'children' => [
-            'unapproved',
             'createPost',
             'updateOwnPost',
             'deleteOwnPost',
@@ -90,6 +104,9 @@ return [
             'deleteOwnComment',
             'updateOwnUser',
             'deleteOwnUser',
+            'createBlog',
+            'updateOwnBlog',
+            'deleteOwnBlog',
         ],
     ],
     'admin' => [
@@ -101,9 +118,12 @@ return [
             'deletePost',
             'updateComment',
             'deleteComment',
+            'createUser',
+            'readUser',
             'updateUser',
             'deleteUser',
-            'createUser',
+            'updateBlog',
+            'deleteBlog',
         ],
     ],
 ];

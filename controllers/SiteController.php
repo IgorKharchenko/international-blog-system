@@ -8,10 +8,12 @@ use yii\web\Controller;
 use yii\filters\VerbFilter;
 use app\models\LoginForm;
 use app\models\SignupForm;
+use app\models\TimeOffset;
 use app\models\Post;
 use app\models\User;
 use yii\data\Pagination;
 use yii\helpers\ArrayHelper;
+use yii\web\HttpException;
 
 
 class SiteController extends Controller
@@ -58,33 +60,7 @@ class SiteController extends Controller
      */
     public function actionIndex()
     {
-        $model = new Post;
-        $query = Post::find();
-        $authors_model = new User;
-
-        $pagination = new Pagination([
-            'defaultPageSize' => 10,
-            'totalCount' => $query
-                ->where('publish_status=:publish_status', [':publish_status' => 'publish'])
-                ->count(),
-        ]);
-
-        /*  === Showing username of the author of selected post ===
-            Firstly we need to find all displayed posts;
-            Secondly we count all author_id's of displayed posts
-                and delete all repeating values from that array,
-                also create a string contains all values from array separated by comma;
-            Thirdly we need to use this array to provide the username in the query.   */
-        $posts = $model->findAllDisplayedPosts($pagination); # 1 step
-        $tmp_str = $model->getAuthorIDs($posts); # 2 step
-        $authors_info = $authors_model->findByAuthorIDs($tmp_str, $pagination); # 3 step
-
-        return $this->render('@app/views/post/index.php',[
-            'posts' => $posts,
-            'authors_info' => $authors_info,
-            'authors_model' => $authors_model,
-            'pagination' => $pagination,
-        ]);
+        return $this->render('index');
     }
 
     public function actionLogin()
@@ -96,8 +72,11 @@ class SiteController extends Controller
         if ($model->load(Yii::$app->request->post()) && $model->login()) {
             $user = User::findOne(Yii::$app->user->id);
             $user->last_login = time();
-            $user->saveUser($user);
-            return $this->goBack();
+            TimeOffset::setTimezoneCookie($user->timezone);
+            if($user->saveUser($user))
+                return $this->goBack();
+            else
+                throw new HttpException('400', 'Error during saving user info');
         }
         return $this->render('login', [
             'model' => $model,
@@ -107,12 +86,14 @@ class SiteController extends Controller
     public function actionLogout()
     {
         Yii::$app->user->logout();
-
         return $this->goHome();
     }
 
     public function actionSignup()
     {
+        if (!\Yii::$app->user->isGuest) {
+            return $this->goHome();
+        }
         $model = new SignupForm();
         if(Yii::$app->user->isGuest) {
             if ($model->load(Yii::$app->request->post())) {
@@ -122,8 +103,10 @@ class SiteController extends Controller
                     }
                 }
             }
+            $user = new User;
             return $this->render('signup', [
                 'model' => $model,
+                'timeZonesList' => $user->getTimeZoneSelect(),
             ]);
         }
         return $this->render('login', [
@@ -132,32 +115,59 @@ class SiteController extends Controller
     }
 
     /**
-     * Admin panel.
-     * and assignment to other user.
-     * @var $alreadyRegistered true if an admin privilegies have been assigned to ANY registered user in the blog
-     * @var isAdmin true if current user already have an admin rights
+     * Admin panel for admins and console for authors in one page!
+     * @var isAdmin true if current user have an admin rights
      * @return string
      */
-    public function actionAdmin()
+    public function actionConsole()
     {
         $user = new User;
         $isAdmin = $user->isAdmin();
 
-        # True if we DON'T have any admins or current user is an admin
         if(!Yii::$app->user->isGuest) {
             if($isAdmin) {
-                return $this->render('admin', [
+                return $this->render('console', [
                     'model' => $user,
                     'assign_permitted' => true,
                 ]);
             } else {
-                return $this->render('admin', [
+                return $this->render('console', [
                     'model' => $user,
                     'assign_permitted' => false,
                 ]);
             }
         } else {
-            return $this->redirect('@app/views/site/login.php');
+            return $this->redirect(['site/login', 'logined' => 'false']);
         }
+    }
+
+    /**
+     * Playground action for testing some features. Will be deleted in the future, por supuesto :D
+     */
+    public function actionPlayground()
+    {
+        $category_model = new \app\models\Category;
+        return var_dump($category_model->checkCategoriesString('1,3,4,5,7,10,14,21,24'));
+
+
+        $model = new Post;
+        $formatter = Yii::$app->formatter;
+        $posts = Post::find()->all();
+        foreach($posts as $post){
+            return var_dump($post->publish_date);
+        }
+        //$before = $formatter->asDatetime($posts->publish_date);
+
+        $getPossst = $model->setOffsetForTimestamps_View($posts);
+        //$after = $formatter->asDatetime($getPossst->publish_date);
+
+        //return var_dump(['Before' => $before, 'After' => $after, 'Equals?' => $before == $after]);
+        foreach($posts as $post){
+            return var_dump($post);
+        }
+
+        $array = ['Offset' => TimeOffset::getUserOffset(), 'This Time' => time()];
+        return var_dump($array);
+        return $this->render('playground');
     }
 }

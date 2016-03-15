@@ -15,6 +15,7 @@ $this->params['breadcrumbs'][] = 'Update User Info';
 
     <?= $this->render('_form', [
         'model' => $model,
+        'timeZonesList' => $timeZonesList,
     ]) ?>
 
 </div>

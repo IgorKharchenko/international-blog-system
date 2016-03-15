@@ -9,7 +9,7 @@ use yii\widgets\ActiveField;
 use dosamigos\ckeditor\CKEditor;
 
 /* @var $this yii\web\View */
-/* @var $model app\models\Users */
+/* @var $model app\models\User */
 /* @var $form yii\widgets\ActiveForm */
 ?>
 
@@ -27,7 +27,7 @@ use dosamigos\ckeditor\CKEditor;
 
     <?= $form->field($model, 'full_name')->textInput(['maxlength' => true]) ?>
 
-    <?= $form->field($model, 'sex')->dropDownList(['Male' => 'Male', 'Female' => 'Female'], ['prompt' => 'Not Set']) ?>
+    <?= $form->field($model, 'sex')->dropDownList(['Not Set' => 'Not Set', 'Male' => 'Male', 'Female' => 'Female']) ?>
 
     <?= $form->field($model, 'country_id')->dropDownList(
         ArrayHelper::map(EarthCountries::getCountriesList(), 'id', 'name_en'),
@@ -43,6 +43,14 @@ use dosamigos\ckeditor\CKEditor;
         'options' => ['rows' => 6],
         'preset' => 'basic',
     ]) ?>
+
+    <?= $form->field($model, 'timezone')->dropDownList($timeZonesList,
+        ['prompt' => $model->searchOffsetByTimezone($timeZonesList, $model->timezone), 'timezone' => $model->timezone],
+        ['options' =>
+            [
+                $model->timezone => ['selected' => true]
+            ],
+        ]) ?>
 
     <div class="form-group">
         <?= Html::submitButton($model->isNewRecord ? 'Create' : 'Update', ['class' => $model->isNewRecord ? 'btn btn-success' : 'btn btn-primary']) ?>

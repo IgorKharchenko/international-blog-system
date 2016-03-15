@@ -14,6 +14,11 @@ $this->params['breadcrumbs'][] = $this->title;
 <div class="site-login">
     <h1><?= Html::encode($this->title) ?></h1>
 
+    <?php if($_GET['logined'] == 'false') echo Alert::widget([
+        'options' => ['class' => 'alert-danger'],
+        'body' => 'You must log in to continue.',
+    ]); ?>
+
     <p>Please fill out the following fields to login:</p>
 
     <?php $form = ActiveForm::begin([

@@ -6,6 +6,8 @@ use Yii;
 use app\models\Post;
 use app\models\Comment;
 use app\models\User;
+use app\models\Blog;
+use app\models\Category;
 use yii\data\ActiveDataProvider;
 use yii\data\Pagination;
 use yii\web\Controller;
@@ -35,34 +37,36 @@ class PostController extends Controller
      * Lists all Post models.
      * @return mixed
      */
-    public function actionIndex()
+    public function actionIndex($blog_id, $category = '')
     {
+        $author = Blog::findAuthorOfBlog($blog_id);
+        $blog = Blog::getBlogByAuthorId($author->id);
+        if($blog->checkUDPrivilegies($blog)) { $HasPrivilegies_Post = true; }
         $model = new Post;
-        $query = Post::find();
-        $authors_model = new User;
+        if($category == '') {
+            $query = Post::find();
+        } else {
+            $query = Post::find()->where(['LIKE', 'categories', $category]);
+        }
 
         $pagination = new Pagination([
             'defaultPageSize' => 10,
             'totalCount' => $query
-                        ->where('publish_status=:publish_status', [':publish_status' => 'publish'])
-                        ->count(),
+                ->andWhere(['publish_status' => 'publish'])
+                ->andWhere(['blog_id' => $blog_id])
+                ->count(),
         ]);
 
-        /*  === Showing username of the author of selected post ===
-            Firstly we need to find all displayed posts;
-            Secondly we count all author_id's of displayed posts
-                and delete all repeating values from that array,
-                also create a string contains all values from array separated by comma;
-            Thirdly we need to use this array to provide the username in the query.   */
-        $posts = $model->findAllDisplayedPosts($pagination); # 1 step
-        $authors_IDs = $model->getAuthorIDs($posts); # 2 step
-        $authors_info = $authors_model->findByAuthorIDs($authors_IDs); # 3 step
+        $posts = $model->findAllDisplayedPosts($pagination, $blog_id, $category);
+        $category = new Category;
 
         return $this->render('index',[
+            'blog' => $blog,
             'posts' => $posts,
-            'authors_model' => $authors_model,
-            'authors_info' => $authors_info,
+            'author' => $author,
+            'HasPrivilegies_Post' => $HasPrivilegies_Post,
             'pagination' => $pagination,
+            'categories_all' => $category->checkAllPostsCategories($posts),
         ]);
     }
 
@@ -71,10 +75,12 @@ class PostController extends Controller
      * @param string $id
      * @return mixed
      */
-    public function actionView($id)
+    public function actionView($id, $blog_id)
     {
         $model = $this->findModel($id);
-        $post_author = $model->findAuthorUsername($id); // finds author username
+        $blog = Blog::getBlogByAuthorId($model->author_id);
+        $post_author = Blog::findAuthorOfBlog($blog_id);
+        $category = new Category;
 
         // find ALL comments with [comment.post_id == post.id]
         $comments_model = new Comment;
@@ -87,23 +93,25 @@ class PostController extends Controller
         $comments_authors_IDs = $model->getAuthorIDs($comments); # 2 step
         $comments_authors_info = $comments_authors_model->findByAuthorIDs($comments_authors_IDs); # 3 step
         /* - 1 step, 2 step... Steps...?! What is this?
-           - See actionIndex for more information. */
+           - See BlogController/actionIndex for more information. */
 
         # if comment is loaded
         if ($comments_model->load(Yii::$app->request->post())) {
             $comments_model->updateCommentsCount($model, "count++");
-            $comments_model->getData();
-            $comments_model->saveComment($comments_model);
+            $comments_model->saveComment($comments_model->getData());
             $this->refresh();
         } else {
+            //return var_dump($category->checkAllPostsCategories($model));
             return $this->render('view', [
                 'model' => $model,
+                'blog' => $blog,
                 'post_author' => $post_author,
-                'userHasPrivilegies_Post' => $model->checkUDPrivilegies($model), // checks user permissions
+                'userHasPrivilegies_Post' => $model->checkUDPrivilegies($model, $blog), // checks user permissions
                 'comments' => $comments,
                 'comments_authors_model' => $comments_authors_model,
                 'comments_authors_info' => $comments_authors_info,
                 'comments_pagination' => $comments_pagination,
+                'categories_all' => $category->checkAllPostsCategories($model),
             ]);
         }
     }
@@ -115,6 +123,8 @@ class PostController extends Controller
      */
     public function actionOurposts($status='all')
     {
+        if(Yii::$app->user->isGuest) {return $this->redirect(['site/login', 'logined' => 'false']);}
+        $category = new Category;
         $model = new Post;
         $posts = $model->findOurPosts($status); // Find our posts with specified status
 
@@ -125,31 +135,48 @@ class PostController extends Controller
 
         return $this->render('ourPosts', [
             'posts' => $posts->all(),
-            'post_author' => User::findIdentity(Yii::$app->user->id),
+            'posts_author' => User::findIdentity(Yii::$app->user->id),
+            'blog' => Blog::getBlogByAuthorId(Yii::$app->user->id),
             'pagination' => $pagination,
+            'categories_all' => $category->checkAllPostsCategories($posts->all()),
         ]);
     }
 
     /**
      * Creates a new Post model.
      * If creation is successful, the browser will be redirected to the 'view' page.
+     * @param int $blog_id Blog ID
      * @return mixed
+     * @throws Exception if the model cannot be saved
      */
-    public function actionCreate()
+    public function actionCreate($blog_id = NULL)
     {
-        $model = new Post();
+        /* If blog id isn't null, also Blog ID must be set, user can post only into own blog */
+        if (Yii::$app->user->isGuest) {
+            return $this->redirect(['site/login', 'logined' => 'false']);
+        } else {
+            if (($blog_id == NULL) || !(Blog::getBlogByAuthorId(Yii::$app->user->id)->id == $blog_id))
+                return $this->redirect(['user/view', 'id' => Yii::$app->user->id, 'error' => 'no_rights']);
+            else {
+                $model = new Post();
+                $blog = Blog::getBlogByAuthorId(Yii::$app->user->id);
 
-        if($model->checkCPrivilegies()) {
-            if ($model->load(\Yii::$app->request->post())) {
-                $model->savePost($model->getPostData());
-                return $this->redirect(['index', 'id' => $model->id]);
-            } else {
-                return $this->render('create', [
-                    'model' => $model,
-                ]);
+                if ($model->checkCPrivilegies()) {
+                    if ($model->load(\Yii::$app->request->post())) {
+                        if($model->savePost($model->getPostData()))
+                            if($model->getPostData()->publish_status == 'publish')
+                                $blog->updatePostsCount($blog, 'count++');
+                        else
+                            throw new Exception('Error during creating post');
+                        return $this->redirect(['post/index', 'blog_id' => $blog_id]);
+                    } else {
+                        return $this->render('create', [
+                            'model' => $model,
+                        ]);
+                    }
+                } else return $this->redirect(['user/view', 'id' => Yii::$app->user->id, 'error' => 'no_rights']);
             }
         }
-        else return $this->redirect('@app/views/site/error_user.php');
     }
 
     /**
@@ -157,22 +184,32 @@ class PostController extends Controller
      * If update is successful, the browser will be redirected to the 'view' page.
      * @param string $id
      * @return mixed
+     * @throws Exception if the model cannot be saved
      */
     public function actionUpdate($id)
     {
+        if(Yii::$app->user->isGuest) {return $this->redirect(['site/login', 'logined' => 'false']);}
         $model = $this->findModel($id);
+        $blog = Blog::getBlogByAuthorId($model->author_id);
         // If this is an author or an admin
-        if($model->checkUDPrivilegies($model)) {
-            if ($model->load(Yii::$app->request->post())) {
-                $model->savePost($model);
-                return $this->redirect(['view', 'id' => $model->id]);
+        if ($model->load(Yii::$app->request->post())) {
+            if($model->checkUDPrivilegies($model) && $blog->checkUDPrivilegies($blog)) {
+                $model->categories = implode(',', $model->categories_selection);
+                if($model->savePost($model))
+                    return $this->redirect(['view', 'id' => $model->id, 'blog_id' => $blog->id]);
+                else
+                    throw new Exception('Error during updating post');
             } else {
-                return $this->render('update', [
-                    'model' => $model,
-                ]);
+                return $this->redirect(['user/view', 'error' => 'no_rights', 'id' => Yii::$app->user->id]);
             }
         } else {
-            return $this->redirect('@app/views/site/login.php');
+            if($model->categories != '') {
+                $category = new Category;
+                $category->cleanAllDeletedCategoriesInPost($model);
+            }
+            return $this->render('update', [
+                'model' => $model,
+            ]);
         }
     }
 
@@ -181,19 +218,27 @@ class PostController extends Controller
      * @param string $id
      * @param string $route | By default is null
      * @return mixed
+     * @throws Exception if the model cannot be saved
      */
     public function actionDelete($id, $route = 'index')
     {
+        if(Yii::$app->user->isGuest) {return $this->redirect(['site/login', 'logined' => 'false']);}
         $model = $this->findModel($id);
+        $blog = Blog::getBlogByAuthorId($model->author_id);
         // If this is an author or an admin
-        if($model->checkUDPrivilegies($model)) {
-            $model->deletePost($model);
-            if($route == 'index')
-                return $this->redirect(['index']);
-            else
-                return $this->redirect(['ourposts', ['status' => $route]]);
+        if($model->checkUDPrivilegies($model) && $blog->checkUDPrivilegies($blog)) {
+            $blog = Blog::getBlogByAuthorId($model->author_id);
+            if($model->getPostData()->publish_status == 'publish')
+                $blog->updatePostsCount($blog, 'count--');
+            if($model->deletePost($model)) {
+                if ($route == 'index')
+                    return $this->redirect(['index', 'blog_id' => $blog->id]);
+                else
+                    return $this->redirect(['ourposts', ['status' => $route]]);
+            } else
+                throw new Exception('Error during deleting post');
         } else {
-            return $this->redirect('@app/views/site/login.php');
+            return $this->redirect(['site/login', 'logined' => 'false']);
         }
     }
 

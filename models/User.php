@@ -175,42 +175,6 @@ class User extends ActiveRecord implements IdentityInterface
     }
 
     /**
-     * Do transaction which saves a model
-     * @param $model
-     * @return bool true if a transaction is successful
-     */
-    public function saveUser($model)
-    {
-        $transaction = Yii::$app->db->beginTransaction();
-        if($model->save())
-        {
-            $transaction->commit();
-            return true;
-        } else {
-            $transaction->rollBack();
-            return false;
-        }
-    }
-
-    /**
-     * Do transaction which deletes a model
-     * @param $model
-     * @return bool true if a transaction is successful
-     */
-    public function deleteUser($model)
-    {
-        $transaction = Yii::$app->db->beginTransaction();
-        if($model->delete())
-        {
-            $transaction->commit();
-            return true;
-        } else {
-            $transaction->rollBack();
-            return false;
-        }
-    }
-
-    /**
      * Updates last login timestamp
      */
     private function setLastLoginTimestamp()
@@ -498,6 +462,42 @@ class User extends ActiveRecord implements IdentityInterface
     public function removePasswordResetToken()
     {
         $this->password_reset_token = null;
+    }
+
+    /**
+     * Do transaction which saves a model
+     * @param $model
+     * @return bool true if a transaction is successful
+     */
+    public function saveUser($model)
+    {
+        $transaction = Yii::$app->db->beginTransaction();
+        if($model->save())
+        {
+            $transaction->commit();
+            return true;
+        } else {
+            $transaction->rollBack();
+            return false;
+        }
+    }
+
+    /**
+     * Do transaction which deletes a model
+     * @param $model
+     * @return bool true if a transaction is successful
+     */
+    public function deleteUser($model)
+    {
+        $transaction = Yii::$app->db->beginTransaction();
+        if($model->delete())
+        {
+            $transaction->commit();
+            return true;
+        } else {
+            $transaction->rollBack();
+            return false;
+        }
     }
 
     /**

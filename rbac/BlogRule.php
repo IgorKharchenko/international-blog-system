@@ -6,9 +6,9 @@ use yii\rbac\Rule;
 /**
  * Checks if authorID matches user passed via params
  */
-class UserRule extends Rule
+class BlogRule extends Rule
 {
-    public $name = 'isAuthorUserRules';
+    public $name = 'isAuthorBlogRules';
 
     /**
      * @param string|integer $user the user ID.
@@ -18,6 +18,6 @@ class UserRule extends Rule
      */
     public function execute($user, $item, $params)
     {
-        return isset($params['user']) ? $params['user']->id == $user : false;
+        return isset($params['blog']) ? $params['blog']->author_id == $user : false;
     }
 }

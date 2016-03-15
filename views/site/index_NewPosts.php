@@ -1,28 +1,21 @@
 <?php
 use yii\helpers\Html;
 use app\models\Blog;
+use app\models\Post;
 use yii\data\Pagination;
 use yii\widgets\LinkPager;
 ?>
 
 <div class="index_BlogsList">
     <?php
-        $query = Blog::find();
-        $pagination = new Pagination([
-            'defaultPageSize' => 10,
-            'totalCount' => $query->count(),
-        ]);
-
-        $blogs = Blog::findAllDisplayedBlogs($pagination);
+        $posts = Post::findLatestPosts(5); // Get 5 latest posts
     ?>
-    <!-- Blog List -->
-    <?php foreach($blogs as $blog): ?>
-        <h4><?= '℘  '. Html::a(Html::encode($blog->name), ['post/index', 'blog_id' => $blog->id]) ?></h4>
-        <?php $author = Blog::findAuthorOfBlog($blog->id); ?>
-        <h5><?= Html::a(Html::encode($author->username), ['user/view', 'id' => $author->id]) ?></h5>
+    <!-- Latest Posts List -->
+    <?php foreach($posts as $post): ?>
+        <h4><?= 'ஐ  '. Html::a(Html::encode($post->title), ['post/view', 'id' => $post->id, 'blog_id' => Blog::getBlogByAuthorId($post->author_id)->id]) ?></h4>
+        <h5><?= Html::a(Html::encode($post->findAuthorUsername($post->id)->username), ['user/view', 'id' => $author->id]) ?></h5>
         <br/>
     <?php endforeach; ?>
-    <!-- Blog List -->
-    <?= LinkPager::widget(['pagination' => $pagination]) ?>
+    <!-- Latest Posts List -->
     <?= Html::a('All Blogs &raquo;', ['blog/index'], ['class' => 'btn btn-default']) ?>
 </div>

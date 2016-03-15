@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Хост: 127.0.0.1:3306
--- Время создания: Мар 09 2016 г., 23:43
+-- Время создания: Мар 15 2016 г., 21:54
 -- Версия сервера: 5.6.26
 -- Версия PHP: 5.6.12
 
@@ -23,11 +23,64 @@ SET time_zone = "+00:00";
 -- --------------------------------------------------------
 
 --
+-- Структура таблицы `blog`
+--
+
+CREATE TABLE IF NOT EXISTS `blog` (
+  `id` int(10) NOT NULL AUTO_INCREMENT,
+  `name` varchar(127) NOT NULL,
+  `title` varchar(255) NOT NULL,
+  `is_private` tinyint(1) NOT NULL DEFAULT '0',
+  `posts_count` int(10) NOT NULL DEFAULT '0',
+  `author_id` int(10) NOT NULL,
+  `created_at` int(11) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `FK_blog_blogAuthor_assignment` (`author_id`)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=22 ;
+
+--
+-- Дамп данных таблицы `blog`
+--
+
+INSERT INTO `blog` (`id`, `name`, `title`, `is_private`, `posts_count`, `author_id`, `created_at`) VALUES
+(1, 'News Blog', 'News from the world and, obviously, from Russia', 0, 12, 1, 1457794514),
+(13, 'Nicolay Blog', 'This is Nicolay private zone!', 0, 2, 3, 1457842180),
+(14, 'Mixa Blog', 'Blog about travelling, cars and so on.', 0, 2, 2, 1457854413),
+(17, 'JASON TERRITORY', 'THIS IS JASON STATHAM TERRITORY!', 0, 2, 33, 1457878953);
+
+-- --------------------------------------------------------
+
+--
+-- Структура таблицы `category`
+--
+
+CREATE TABLE IF NOT EXISTS `category` (
+  `id` int(10) NOT NULL AUTO_INCREMENT,
+  `name` varchar(50) NOT NULL,
+  `title` varchar(100) NOT NULL,
+  `blog_id` int(10) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=6 ;
+
+--
+-- Дамп данных таблицы `category`
+--
+
+INSERT INTO `category` (`id`, `name`, `title`, `blog_id`) VALUES
+(1, 'North Korea', 'News from North Korea', 1),
+(2, 'Russian Banks', 'Russian Banks News', 1),
+(3, 'Test', 'Testing some features of this blog', 1),
+(4, 'Don''t Know What Is This', 'Category about everything', 13),
+(5, 'Crocodiles', 'All info about Crocodiles, rararaaaar', 13);
+
+-- --------------------------------------------------------
+
+--
 -- Структура таблицы `comment`
 --
 
 CREATE TABLE IF NOT EXISTS `comment` (
-  `id` int(10) unsigned NOT NULL,
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `title` varchar(255) NOT NULL,
   `content` text NOT NULL,
   `author_id` int(10) NOT NULL,
@@ -35,19 +88,25 @@ CREATE TABLE IF NOT EXISTS `comment` (
   `publish_date` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `FK_post_comment_assignment` (`post_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=22 ;
 
 --
 -- Дамп данных таблицы `comment`
 --
 
 INSERT INTO `comment` (`id`, `title`, `content`, `author_id`, `post_id`, `publish_date`) VALUES
-(2, 'Проверяем комментарии...', 'Hola, amigo!\r\nUpdated\r\nUpdated by Admin', 2, 12, 1457008156),
-(5, 'Да что вы вообще несёте?', '<p>Я никогда в жизни не поверю, что КНДР способна на такое!</p>\r\n', 4, 5, 1457078588),
-(6, 'Не соглашусь с Вами', '<p>Не согласен с Вашей точки зрения. Мощь севернокорейской армии способна на многое!</p>\n\n<p><em>далее, очевидно, должна быть представлена&nbsp;развёрнутая аргументация с ссылками на источники,&nbsp;почему именно Северная Корея такая по-боевому настроенная прям</em></p>\n', 1, 5, 1457104516),
-(7, 'Норм', '<p>А чё, норм парень</p>\r\n', 3, 13, 1457107988),
-(8, '[КНДР ваш крым наш] расставь знаки препинания', '<p>Да-да-да, КНДР прямо-таки весь мир под страхом держит.</p><p>Щаз!</p><p>КНДР никогда и не владела ядерной мощью!&nbsp;Да вы хотя бы взгляните на Google Maps:</p><p><img alt="Сравнение ночного освещения Северной и Южной Кореи на Google Maps" src="http://lurkmore.so/images/c/cb/Korean_peninsula_at_night1.jpg" style="height:474px; width:393px" /></p><p>Ну и где вы, товарищ, здесь свет увидели?</p><p><em>...ну и так далее.</em></p><p><em>спойлер: спор был продолжен&nbsp;до полного игнора&nbsp;обеими&nbsp;сторонами всяческих аргументов и доказательной базы, посему был отредактирован администратором</em></p>', 3, 5, 1457119778),
-(23, 'Who are you?', '<p>Nicolay? Who are you?</p>\r\n', 1, 14, 1457349993);
+(1, 'Проверяем комментарии...', 'Hola, amigo!\r\nUpdated\r\nUpdated by Admin', 2, 12, 1457008156),
+(2, 'Да что вы вообще несёте?', '<p>Я никогда в жизни не поверю, что КНДР способна на такое!</p>\r\n', 4, 5, 1457078588),
+(3, 'Не соглашусь с Вами', '<p>Не согласен с Вашей точки зрения. Мощь севернокорейской армии способна на многое!</p>\n\n<p><em>далее, очевидно, должна быть представлена&nbsp;развёрнутая аргументация с ссылками на источники,&nbsp;почему именно Северная Корея такая по-боевому настроенная прям</em></p>\n', 1, 5, 1457104516),
+(4, 'Норм', '<p>А чё, норм парень</p>\r\n', 3, 13, 1457107988),
+(5, '[КНДР ваш крым наш] расставь знаки препинания', '<p>Да-да-да, КНДР прямо-таки весь мир под страхом держит.</p><p>Щаз!</p><p>КНДР никогда и не владела ядерной мощью!&nbsp;Да вы хотя бы взгляните на Google Maps:</p><p><img alt="Сравнение ночного освещения Северной и Южной Кореи на Google Maps" src="http://lurkmore.so/images/c/cb/Korean_peninsula_at_night1.jpg" style="height:474px; width:393px" /></p><p>Ну и где вы, товарищ, здесь свет увидели?</p><p><em>...ну и так далее.</em></p><p><em>спойлер: спор был продолжен&nbsp;до полного игнора&nbsp;обеими&nbsp;сторонами всяческих аргументов и доказательной базы, посему был отредактирован администратором</em></p>', 3, 5, 1457119778),
+(6, 'Who are you?', '<p>Nicolay? Who are you?</p>\r\n', 1, 14, 1457349993),
+(7, 'hhh', 'hhh\r\nhhh', 33, 14, 1457599296),
+(11, 'TIMEZONE TEST', '<p>NOW IS [11:51:10&nbsp;+01:00 GMT]</p>\r\n\r\n<p>Updated by Nicolay in&nbsp;~5 minutes</p>\r\n', 3, 92, 1457779867),
+(12, 'Comment Leaving', '<p>Can I leave a comment for you...?</p>\r\n', 2, 92, 1457869421),
+(13, 'Why your blog is so private, man', '<p>...</p>\r\n', 2, 14, 1457870692),
+(14, 'JASON COMMENT!', '<p>JASON COMMENT!</p>\r\n', 33, 104, 1457879781),
+(15, 'JASON COMMENT!', '<p>JASON COMMENT!</p>\r\n', 33, 104, 1457879787);
 
 -- --------------------------------------------------------
 
@@ -327,25 +386,43 @@ CREATE TABLE IF NOT EXISTS `post` (
   `title` varchar(255) NOT NULL,
   `anons` text,
   `content` mediumtext,
+  `categories` varchar(256) NOT NULL,
+  `blog_id` int(10) NOT NULL,
   `author_id` int(10) NOT NULL,
   `comments_count` int(10) NOT NULL DEFAULT '0',
   `publish_status` enum('draft','publish') NOT NULL DEFAULT 'draft',
   `publish_date` int(11) NOT NULL,
   PRIMARY KEY (`id`),
-  KEY `FK_post_user_assignment` (`author_id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=78 ;
+  KEY `FK_blog_post_assignment` (`blog_id`)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=120 ;
 
 --
 -- Дамп данных таблицы `post`
 --
 
-INSERT INTO `post` (`id`, `title`, `anons`, `content`, `author_id`, `comments_count`, `publish_status`, `publish_date`) VALUES
-(5, 'Вооруженные силы США готовы контратаковать ядерные силы КНДР и уничтожить их в случае необходимости', 'После того как лидер КНДР Ким Чен Ын заявил о том, что ядерные силы страны должны быть готовы в любой момент атаковать противника, Пентагон оставил оценку опасности северокорейского арсенала на прежнем низком уровне...', '<p>Вооруженные силы США готовы контратаковать ядерные силы КНДР и уничтожить их в случае необходимости. Такое заявление сделал чиновник американского минобороны, передает Yahoo! News.</p>\n\n<p>После того как лидер КНДР Ким Чен Ын заявил о том, что ядерные силы страны должны быть готовы в любой момент атаковать противника, Пентагон оставил оценку опасности северокорейского арсенала на прежнем низком уровне.</p>\n\n<p>&laquo;Оценка правительства США не изменилась&raquo;, &mdash; уточнил он. &laquo;Мы не видели северокорейского испытания или демонстрации ее способности к миниатюризации ядерного оружия и оснащения им межконтинентальных баллистических ракет&raquo;, &mdash; подчеркнул чиновник.</p>\n\n<p>В пятницу, 4 марта, Ким Чен Ын заявил, что КНДР пересмотрит свою военную доктрину, чтобы быть готовой наносить превентивные удары в связи с текущей ситуацией, которая является очень опасной для страны.</p>\n\n<p>2 марта Совет Безопасности ООН&nbsp;<a href="https://lenta.ru/news/2016/03/02/bye_dprk/" style="-webkit-font-smoothing: antialiased; box-sizing: border-box; color: rgb(204, 153, 153); transition: color 0.2s; text-decoration: none;" target="_blank">одобрил</a>&nbsp;новый пакет беспрецедентно жестких санкций против Северной Кореи.</p>\n\n<p>Новые санкции в отношении КНДР стали ответом на испытание Пхеньяном в январе 2016 года водородной бомбы и пуск ракеты дальнего радиуса действия в феврале. США&nbsp;<a href="https://lenta.ru/news/2016/02/18/obama1/" style="-webkit-font-smoothing: antialiased; box-sizing: border-box; color: rgb(204, 153, 153); transition: color 0.2s; text-decoration: none;" target="_blank">ввели</a>&nbsp;новые односторонние санкции против Северной Кореи 18 февраля. Вскоре после голосования Совбеза они обнародовали дополнительные ограничения: под санкции Минфина США попал министр обороны КНДР Пак Ен Сик, а под санкции Госдепартамента &mdash; министерство атомной энергетики КНДР, военная академия, несколько организаций и два физических лица.</p>\n\n<p>В результате запуска ракеты, произведенного 7 февраля, на орбиту был выведен спутник Kwangmyongsong-4 (&laquo;Яркая звезда-4&raquo;), предназначенный для слежения за Землей. В мировом сообществе этот запуск восприняли как нарушение резолюций Совбеза ООН, запрещающих Северной Корее испытания и пуски баллистических ракет.</p>\n', 1, 3, 'publish', 1457071820),
-(8, 'fff', 'fff', '<p>fff</p>\r\n', 3, 0, 'draft', 1457109400),
-(12, 'Банк России резко снизил курсы доллара и евро', 'Официальный курс доллара, установленный Банком России на 2 марта, составляет 74,05 рубля. Он снижен на 1,85 рубля. Евро при этом подешевел на 2,57 рубля, до 80,53 рубля. Такая информация размещена на сайте регулятора.', '<p>Банк России резко снизил курсы доллара и&nbsp;евро</p>\r\n\r\n<p><img alt="" class="g-picture" src="http://icdn.lenta.ru/images/2016/03/01/12/20160301125911692/pic_acea8e752306980f2c7b2a3bc8c933cc.jpg" style="-webkit-font-smoothing:antialiased; border:0px; box-sizing:border-box; display:inline; float:left; height:240px; max-width:420px; vertical-align:middle; width:360px" /></p>\r\n\r\n<p>&nbsp;</p>\r\n\r\n<p>&nbsp;</p>\r\n\r\n<p>&nbsp;</p>\r\n\r\n<p>&nbsp;</p>\r\n\r\n<p>&nbsp;</p>\r\n\r\n<p>&nbsp;</p>\r\n\r\n<p>&nbsp;</p>\r\n\r\n<p>&nbsp;</p>\r\n\r\n<p>Фото: Антон Белицкий / &laquo;Коммерсантъ&raquo;</p>\r\n\r\n<p>Официальный курс доллара, установленный Банком России на 2 марта, составляет 74,05 рубля. Он снижен на 1,85 рубля. Евро при этом подешевел на 2,57 рубля, до 80,53 рубля. Такая информация размещена на&nbsp;<a href="http://www.cbr.ru/" style="-webkit-font-smoothing: antialiased; box-sizing: border-box; color: rgb(204, 153, 153); transition: color 0.2s; text-decoration: none;" target="_blank">сайте</a>&nbsp;регулятора.</p>\r\n\r\n<p>На Московской бирже американская валюта стоит 73,79 рубля (минус 1,38&nbsp;рубля по сравнению с закрытием торговой сессии 29&nbsp;февраля), единая европейская&nbsp;&mdash; 80,15&nbsp;рубля (упала на 1,41 рубля). Нефть марки Brent торгуется около отметки 36,63 доллара за баррель. Все данные &mdash; на 12:55 мск.</p>\r\n\r\n<p>Согласно&nbsp;<a href="http://lenta.ru/news/2016/03/01/vciom/" style="-webkit-font-smoothing: antialiased; box-sizing: border-box; color: rgb(204, 153, 153); transition: color 0.2s; text-decoration: none;" target="_blank">последнему</a>&nbsp;социологическому опросу ВЦИОМ, большая часть россиян (57 процентов) предпочитают хранить сбережения в рублях. Тем не менее участники исследования ждут, что доллар в ближайшие три месяца подорожает до 84 рублей, а через год будет стоить 83 рубля.</p>\r\n\r\n<p>Ранее, 20 января, глава Банка России Эльвира Набиуллина заявляла, что текущий курс рубля близок к фундаментально обоснованному. Первый вице-премьер правительства Игорь Шувалов, в свою очередь,&nbsp;<a href="http://lenta.ru/news/2016/01/20/keep_calm/" style="-webkit-font-smoothing: antialiased; box-sizing: border-box; color: rgb(204, 153, 153); transition: color 0.2s; text-decoration: none;" target="_blank">посоветовал</a>&nbsp;россиянам обращать меньше внимания на изменение валютных курсов.</p>\r\n', 2, 1, 'publish', 1457105105),
-(13, 'Ученые установили личность британского художника Бэнкси', 'Ученые из колледжа Королевы Марии Лондонского университета смогли установить личность граффитиста Бэнкси. Им оказался выпускник публичной школы в Бристоле Робин Каннингем. Исследование авторов опубликовано в Journal of Spatial Science, кратко о нем сообщает издание The Independent.', '<p><img alt="" class="g-picture" src="http://icdn.lenta.ru/images/2016/03/04/09/20160304091737090/pic_aad215f0536a12bd153391ce1dadbd25.jpg" style="-webkit-font-smoothing:antialiased; border:0px; box-sizing:border-box; display:inline; float:left; height:280px; max-width:420px; vertical-align:middle; width:420px" /></p>\r\n\r\n<p>&nbsp;</p>\r\n\r\n<p>&nbsp;</p>\r\n\r\n<p>&nbsp;</p>\r\n\r\n<p>&nbsp;</p>\r\n\r\n<p>&nbsp;</p>\r\n\r\n<p>&nbsp;</p>\r\n\r\n<p>&nbsp;</p>\r\n\r\n<p>&nbsp;</p>\r\n\r\n<p>&nbsp;</p>\r\n\r\n<p>&nbsp;</p>\r\n\r\n<p>Фото: Carlo Allegri / Reuters</p>\r\n\r\n<p>Ученые из колледжа Королевы Марии Лондонского университета смогли установить личность граффитиста Бэнкси. Им оказался выпускник публичной школы в Бристоле Робин Каннингем. Исследование авторов опубликовано в Journal of Spatial Science, кратко о нем сообщает издание The Independent.</p>\r\n\r\n<p>В своей работе ученые использовали географическое профилирование, позволяющее вычислить личность человека по местам, которые он наиболее часто посещает. Специалисты проанализировали около 140 мест на улицах Лондона и Бристоля, где можно было заметить присутствие работ художника.</p>\r\n\r\n<p>МАТЕРИАЛЫ ПО ТЕМЕ</p>\r\n\r\n<p><strong>13:24</strong>&nbsp;29 июня 2010</p>\r\n\r\n<p><a class="b-badge js-dh" href="http://lenta.ru/articles/2010/06/29/apostles/" style="-webkit-font-smoothing: antialiased; box-sizing: border-box; color: rgb(204, 51, 51); transition: color 0.2s; text-decoration: none; position: relative; display: inline-block;"><img alt="&quot;Апостолы Петр и Павел&quot; кисти Эль Греко" class="g-picture" src="http://icdn.lenta.ru/images/0000/0265/000002657032/tabloid_1358860977.jpg" style="-webkit-font-smoothing:antialiased; border-style:initial; border-width:0px; box-sizing:border-box; display:inline; float:left; height:64px; margin-right:15px; max-width:96px; vertical-align:middle; width:96px" /></a></p>\r\n\r\n<p><a class="js-dh" href="http://lenta.ru/articles/2010/06/29/apostles/" style="-webkit-font-smoothing: antialiased; box-sizing: border-box; color: rgb(21, 21, 21); transition: color 0.2s; text-decoration: none;">12 прославленных мужчин</a></p>\r\n\r\n<p>Археологи еще немного прояснили историю культа апостолов</p>\r\n\r\n<p>Выяснилось, что данные места совпадают с барами, футбольными полями и домашними адресами, где часто присутствовал Каннингем. То, что он является загадочным художником, начали подозревать еще в 2008 году. В частности, считалось, что настоящее имя художника &mdash; Роберт или Робин.</p>\r\n\r\n<p>Многими экспертами Бэнкси считается наиболее ярким представителем мирового стрит-арта и политического активизма. Работы художника представляют собой графику, подписанную псевдонимом Бэнкси. Стоимость некоторых работ художника оценивается в миллион долларов.</p>\r\n', 3, 1, 'publish', 1457078524),
-(14, 'Nicolay Post', '<p>Nicolay was here!</p>\r\n', '<p>Nicolay, one of the technicians of <strong>General Baker</strong>, was here!</p>\r\n\r\n<p><em>Updated by Admin</em></p>\r\n', 3, 1, 'publish', 1457109597),
-(15, 'fff', 'fff', '<p>fff</p>\r\n', 3, 0, 'draft', 1457109492);
+INSERT INTO `post` (`id`, `title`, `anons`, `content`, `categories`, `blog_id`, `author_id`, `comments_count`, `publish_status`, `publish_date`) VALUES
+(5, 'Вооруженные силы США готовы контратаковать ядерные силы КНДР и уничтожить их в случае необходимости', 'После того как лидер КНДР Ким Чен Ын заявил о том, что ядерные силы страны должны быть готовы в любой момент атаковать противника, Пентагон оставил оценку опасности северокорейского арсенала на прежнем низком уровне...', '<p>Вооруженные силы США готовы контратаковать ядерные силы КНДР и уничтожить их в случае необходимости. Такое заявление сделал чиновник американского минобороны, передает Yahoo! News.</p>\n\n<p>После того как лидер КНДР Ким Чен Ын заявил о том, что ядерные силы страны должны быть готовы в любой момент атаковать противника, Пентагон оставил оценку опасности северокорейского арсенала на прежнем низком уровне.</p>\n\n<p>&laquo;Оценка правительства США не изменилась&raquo;, &mdash; уточнил он. &laquo;Мы не видели северокорейского испытания или демонстрации ее способности к миниатюризации ядерного оружия и оснащения им межконтинентальных баллистических ракет&raquo;, &mdash; подчеркнул чиновник.</p>\n\n<p>В пятницу, 4 марта, Ким Чен Ын заявил, что КНДР пересмотрит свою военную доктрину, чтобы быть готовой наносить превентивные удары в связи с текущей ситуацией, которая является очень опасной для страны.</p>\n\n<p>2 марта Совет Безопасности ООН&nbsp;<a href="https://lenta.ru/news/2016/03/02/bye_dprk/" style="-webkit-font-smoothing: antialiased; box-sizing: border-box; color: rgb(204, 153, 153); transition: color 0.2s; text-decoration: none;" target="_blank">одобрил</a>&nbsp;новый пакет беспрецедентно жестких санкций против Северной Кореи.</p>\n\n<p>Новые санкции в отношении КНДР стали ответом на испытание Пхеньяном в январе 2016 года водородной бомбы и пуск ракеты дальнего радиуса действия в феврале. США&nbsp;<a href="https://lenta.ru/news/2016/02/18/obama1/" style="-webkit-font-smoothing: antialiased; box-sizing: border-box; color: rgb(204, 153, 153); transition: color 0.2s; text-decoration: none;" target="_blank">ввели</a>&nbsp;новые односторонние санкции против Северной Кореи 18 февраля. Вскоре после голосования Совбеза они обнародовали дополнительные ограничения: под санкции Минфина США попал министр обороны КНДР Пак Ен Сик, а под санкции Госдепартамента &mdash; министерство атомной энергетики КНДР, военная академия, несколько организаций и два физических лица.</p>\n\n<p>В результате запуска ракеты, произведенного 7 февраля, на орбиту был выведен спутник Kwangmyongsong-4 (&laquo;Яркая звезда-4&raquo;), предназначенный для слежения за Землей. В мировом сообществе этот запуск восприняли как нарушение резолюций Совбеза ООН, запрещающих Северной Корее испытания и пуски баллистических ракет.</p>\n', '', 1, 1, 3, 'publish', 1457071820),
+(8, 'fff', 'fff', '<p>fff</p>\r\n', '', 13, 3, 0, 'draft', 1457109400),
+(12, 'Банк России резко снизил курсы доллара и евро', 'Официальный курс доллара, установленный Банком России на 2 марта, составляет 74,05 рубля. Он снижен на 1,85 рубля. Евро при этом подешевел на 2,57 рубля, до 80,53 рубля. Такая информация размещена на сайте регулятора.', '<p>Банк России резко снизил курсы доллара и&nbsp;евро</p>\r\n\r\n<p><img alt="" class="g-picture" src="http://icdn.lenta.ru/images/2016/03/01/12/20160301125911692/pic_acea8e752306980f2c7b2a3bc8c933cc.jpg" style="-webkit-font-smoothing:antialiased; border:0px; box-sizing:border-box; display:inline; float:left; height:240px; max-width:420px; vertical-align:middle; width:360px" /></p>\r\n\r\n<p>&nbsp;</p>\r\n\r\n<p>&nbsp;</p>\r\n\r\n<p>&nbsp;</p>\r\n\r\n<p>&nbsp;</p>\r\n\r\n<p>&nbsp;</p>\r\n\r\n<p>&nbsp;</p>\r\n\r\n<p>&nbsp;</p>\r\n\r\n<p>&nbsp;</p>\r\n\r\n<p>Фото: Антон Белицкий / &laquo;Коммерсантъ&raquo;</p>\r\n\r\n<p>Официальный курс доллара, установленный Банком России на 2 марта, составляет 74,05 рубля. Он снижен на 1,85 рубля. Евро при этом подешевел на 2,57 рубля, до 80,53 рубля. Такая информация размещена на&nbsp;<a href="http://www.cbr.ru/" style="-webkit-font-smoothing: antialiased; box-sizing: border-box; color: rgb(204, 153, 153); transition: color 0.2s; text-decoration: none;" target="_blank">сайте</a>&nbsp;регулятора.</p>\r\n\r\n<p>На Московской бирже американская валюта стоит 73,79 рубля (минус 1,38&nbsp;рубля по сравнению с закрытием торговой сессии 29&nbsp;февраля), единая европейская&nbsp;&mdash; 80,15&nbsp;рубля (упала на 1,41 рубля). Нефть марки Brent торгуется около отметки 36,63 доллара за баррель. Все данные &mdash; на 12:55 мск.</p>\r\n\r\n<p>Согласно&nbsp;<a href="http://lenta.ru/news/2016/03/01/vciom/" style="-webkit-font-smoothing: antialiased; box-sizing: border-box; color: rgb(204, 153, 153); transition: color 0.2s; text-decoration: none;" target="_blank">последнему</a>&nbsp;социологическому опросу ВЦИОМ, большая часть россиян (57 процентов) предпочитают хранить сбережения в рублях. Тем не менее участники исследования ждут, что доллар в ближайшие три месяца подорожает до 84 рублей, а через год будет стоить 83 рубля.</p>\r\n\r\n<p>Ранее, 20 января, глава Банка России Эльвира Набиуллина заявляла, что текущий курс рубля близок к фундаментально обоснованному. Первый вице-премьер правительства Игорь Шувалов, в свою очередь,&nbsp;<a href="http://lenta.ru/news/2016/01/20/keep_calm/" style="-webkit-font-smoothing: antialiased; box-sizing: border-box; color: rgb(204, 153, 153); transition: color 0.2s; text-decoration: none;" target="_blank">посоветовал</a>&nbsp;россиянам обращать меньше внимания на изменение валютных курсов.</p>\r\n', '', 1, 1, 1, 'publish', 1457105105),
+(13, 'Ученые установили личность британского художника Бэнкси', 'Ученые из колледжа Королевы Марии Лондонского университета смогли установить личность граффитиста Бэнкси. Им оказался выпускник публичной школы в Бристоле Робин Каннингем. Исследование авторов опубликовано в Journal of Spatial Science, кратко о нем сообщает издание The Independent.', '<p><img alt="" class="g-picture" src="http://icdn.lenta.ru/images/2016/03/04/09/20160304091737090/pic_aad215f0536a12bd153391ce1dadbd25.jpg" style="-webkit-font-smoothing:antialiased; border:0px; box-sizing:border-box; display:inline; float:left; height:280px; max-width:420px; vertical-align:middle; width:420px" /></p>\r\n\r\n<p>&nbsp;</p>\r\n\r\n<p>&nbsp;</p>\r\n\r\n<p>&nbsp;</p>\r\n\r\n<p>&nbsp;</p>\r\n\r\n<p>&nbsp;</p>\r\n\r\n<p>&nbsp;</p>\r\n\r\n<p>&nbsp;</p>\r\n\r\n<p>&nbsp;</p>\r\n\r\n<p>&nbsp;</p>\r\n\r\n<p>&nbsp;</p>\r\n\r\n<p>Фото: Carlo Allegri / Reuters</p>\r\n\r\n<p>Ученые из колледжа Королевы Марии Лондонского университета смогли установить личность граффитиста Бэнкси. Им оказался выпускник публичной школы в Бристоле Робин Каннингем. Исследование авторов опубликовано в Journal of Spatial Science, кратко о нем сообщает издание The Independent.</p>\r\n\r\n<p>В своей работе ученые использовали географическое профилирование, позволяющее вычислить личность человека по местам, которые он наиболее часто посещает. Специалисты проанализировали около 140 мест на улицах Лондона и Бристоля, где можно было заметить присутствие работ художника.</p>\r\n\r\n<p>МАТЕРИАЛЫ ПО ТЕМЕ</p>\r\n\r\n<p><strong>13:24</strong>&nbsp;29 июня 2010</p>\r\n\r\n<p><a class="b-badge js-dh" href="http://lenta.ru/articles/2010/06/29/apostles/" style="-webkit-font-smoothing: antialiased; box-sizing: border-box; color: rgb(204, 51, 51); transition: color 0.2s; text-decoration: none; position: relative; display: inline-block;"><img alt="&quot;Апостолы Петр и Павел&quot; кисти Эль Греко" class="g-picture" src="http://icdn.lenta.ru/images/0000/0265/000002657032/tabloid_1358860977.jpg" style="-webkit-font-smoothing:antialiased; border-style:initial; border-width:0px; box-sizing:border-box; display:inline; float:left; height:64px; margin-right:15px; max-width:96px; vertical-align:middle; width:96px" /></a></p>\r\n\r\n<p><a class="js-dh" href="http://lenta.ru/articles/2010/06/29/apostles/" style="-webkit-font-smoothing: antialiased; box-sizing: border-box; color: rgb(21, 21, 21); transition: color 0.2s; text-decoration: none;">12 прославленных мужчин</a></p>\r\n\r\n<p>Археологи еще немного прояснили историю культа апостолов</p>\r\n\r\n<p>Выяснилось, что данные места совпадают с барами, футбольными полями и домашними адресами, где часто присутствовал Каннингем. То, что он является загадочным художником, начали подозревать еще в 2008 году. В частности, считалось, что настоящее имя художника &mdash; Роберт или Робин.</p>\r\n\r\n<p>Многими экспертами Бэнкси считается наиболее ярким представителем мирового стрит-арта и политического активизма. Работы художника представляют собой графику, подписанную псевдонимом Бэнкси. Стоимость некоторых работ художника оценивается в миллион долларов.</p>\r\n', '', 1, 1, 1, 'publish', 1457078524),
+(14, 'Nicolay Post', 'Nicolay was here!', '<p>Nicolay, one of the technicians of <strong>General Baker</strong>, was here!</p>\r\n\r\n<p><em>Updated by Admin</em></p>\r\n', '', 13, 3, 2, 'publish', 1457109597),
+(15, 'fff', 'fff', '<p>fff</p>\r\n', '', 13, 3, 0, 'draft', 1457109492),
+(92, 'TIMEZONE TEST', '...', '<p>NOW IS [16:49:00 +06:00 GMT]</p>\r\n', '', 1, 1, 2, 'publish', 1457779739),
+(94, 'Testing Blog Posting', 'Testing Blog Posting', '<p>Testing Blog Posting</p>\r\n', '', 1, 1, 0, 'publish', 1457847028),
+(95, 'Testing Blog Posting', 'Testing Blog Posting', '<p>Testing Blog Posting</p>\r\n', '', 1, 1, 0, 'publish', 1457847149),
+(96, 'Testing Blog Posting', 'Testing Blog Posting', '<p>Testing Blog Posting</p>\r\n', '', 1, 1, 0, 'publish', 1457847160),
+(97, 'Testing Blog Posting', 'Testing Blog Posting', '<p>Testing Blog Posting</p>\r\n', '', 1, 1, 0, 'publish', 1457847234),
+(98, 'Mixa New Post', 'This Is MIXA!', '<p>ddd</p>\r\n', '', 14, 2, 0, 'publish', 1457868733),
+(99, 'Two Problems In Russia', 'Two Problems In Russia', '<p>There are 2 problems in Russia:<span style="color:#FF8C00"> fools</span> and <span style="color:#FF0000">roads</span>.</p>\r\n\r\n<p><img alt="" src="http://s017.radikal.ru/i422/1603/0b/995addc47cb4.jpg" style="height:381px; width:460px" /></p>\r\n', '', 14, 2, 0, 'publish', 1457870898),
+(104, 'JASON POST', 'JASON POST', '<p>JASON POST</p>\r\n', '', 17, 33, 2, 'publish', 1457878993),
+(105, 'JASON POST', 'JASON POST', '<p>JASON POST</p>\r\n', '', 17, 33, 0, 'publish', 1457879006),
+(106, 'PRIVATE JASON POST', 'PRIVATE JASON POST', '<p>PRIVATE JASON POST</p>\r\n', '', 17, 33, 0, 'draft', 1457879040),
+(107, 'PRIVATE POST', 'PRIVATE POST', '<p>PRIVATE POST</p>\r\n', '', 13, 3, 0, 'draft', 1457880506),
+(112, 'dddd', 'dddd', '<p>dddd</p>\r\n', '1,2,3', 1, 1, 0, 'publish', 1457964765),
+(114, 'I don''t know how to post, lol', '...', '<p><img alt="Krokodil Gena" src="http://s019.radikal.ru/i623/1603/f5/4b01503f10d1.jpg" style="height:581px; width:539px" /></p>\r\n', '4,5', 13, 3, 0, 'publish', 1457966372),
+(117, 'TEST POST, MUST BE DELETED', 'TEST POST, MUST BE DELETED', '<p>TEST POST, MUST BE DELETED</p>\r\n', '', 1, 1, 0, 'publish', 1457993516),
+(118, 'TEST POST', 'TEST POST', '<p>TEST POST</p>\r\n', '', 1, 1, 0, 'publish', 1457993671),
+(119, 'fff', 'fff', '<p>fff</p>\r\n', '1', 1, 1, 0, 'publish', 1458020265);
 
 -- --------------------------------------------------------
 
@@ -364,30 +441,38 @@ CREATE TABLE IF NOT EXISTS `user` (
   `status` int(4) NOT NULL,
   `created_at` int(11) NOT NULL,
   `updated_at` int(11) DEFAULT NULL,
+  `timezone` varchar(255) NOT NULL,
   `full_name` varchar(255) DEFAULT NULL,
-  `sex` enum('Male','Female','Not Set','') DEFAULT 'Not Set',
+  `sex` enum('Male','Female','Not Set') DEFAULT 'Not Set',
   `country_id` int(10) DEFAULT NULL,
-  `city` varchar(255) DEFAULT NULL,
+  `city` varchar(255) NOT NULL,
   `about` text,
   `last_login` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=34 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=36 ;
 
 --
 -- Дамп данных таблицы `user`
 --
 
-INSERT INTO `user` (`id`, `username`, `password_hash`, `password_reset_token`, `email`, `show_email`, `auth_key`, `status`, `created_at`, `updated_at`, `full_name`, `sex`, `country_id`, `city`, `about`, `last_login`) VALUES
-(1, 'Admin', '$2y$13$yXcv1cmbHqBIi01bEgzTju77xCqswQx4FGEvZ24d27KVnIjJZXG26', NULL, 'hatand@bk.ru', 0, 'PwrSFFEtXUm7A4jFScN2HQvkJrAKKwh1', 10, 1457106539, 1457551384, 'Igor Kharchenko', 'Male', 20, 'Tomsk', '<p>Hello to everyone! I am the admin of this blog.</p>\r\n\r\n<p><img alt="Roman Bukin" src="https://icdn.lenta.ru/images/0000/0110/000001107466/pic_1358563301.jpg" style="height:255px; width:340px" /></p>\r\n', 1457551384),
-(2, 'Mikhail Lavrentiev', '$2y$13$aE6qEDc2Xo/0Cyxq5Ag7VenvcmmP5BvgS8niERW8wMjsBVDasOmYG', NULL, 'mikhail_lavrentiev@backmeup.cz', 0, 'S4zm8pKokYT9f6vssQQQ47LYtgldoOKx', 10, 1457106600, 1457551434, NULL, 'Not Set', NULL, NULL, NULL, 1457551434),
-(3, 'Nicolay', '$2y$13$ppaVQWWIO6zHprieWYl7cuk6hAfWfSW2pgEifdY0HlOvCgu.Mkx3y', NULL, 'nicolay-was-here@nicolay.info', 1, '8Z7R2AsH6wtppA2J6S_ns3BYGzeVL0mF', 10, 1457107116, 1457551413, 'Nicolay!!11', 'Not Set', 20, 'Kurgan', '<p>I&#39;m Nicolay, one of the technicians of <strong>G</strong>eneral <strong>B</strong>a<strong>k</strong>er!</p>\r\n', 1457551413),
-(4, 'NAT Korea User', '$2y$13$q8ShM7LKj2tukxZf4gcEYu0xa0eqlzNG6BTR0HV9NCM66A/JsiM9q', NULL, 'van.shi@nkorea.kp', 0, '2zgiyxsqf9EI1HIKMXfNi7mLyOi219Lt', 10, 1457125148, 1457550159, NULL, 'Not Set', NULL, NULL, NULL, 1457550159),
-(6, 'Must Be Deleted', '$2y$13$.0psxj6CwefyG41WFLQNXeWfZMLatNI5fWsTAfEuJtLZkNOuBIk9.', NULL, 'must_be_deleted@yii.local', 0, 'HbDkrYQgQe276Qd2hMV1DpLzzUnrvQVb', 10, 1457296163, 1457550176, NULL, 'Not Set', NULL, NULL, NULL, 1457550176),
-(33, 'Seryoga Vasilyev', '$2y$13$SfWJIqGArFVfCZUyYxer4.xGBBt.JgrMpzbB7b3pPSXk9zNzz1RqS', NULL, 'seryoga_vasilyev-890@lenta.ru', 0, 'I1Dp0xu6nATtmZc6E2PCscLKZx09clMc', 10, 1457551828, 1457555306, 'Sergey Vasyliev', 'Not Set', 20, 'Magadan', '<p>I am like Jason Statham!</p>\r\n', 1457555291);
+INSERT INTO `user` (`id`, `username`, `password_hash`, `password_reset_token`, `email`, `show_email`, `auth_key`, `status`, `created_at`, `updated_at`, `timezone`, `full_name`, `sex`, `country_id`, `city`, `about`, `last_login`) VALUES
+(1, 'Admin', '$2y$13$yXcv1cmbHqBIi01bEgzTju77xCqswQx4FGEvZ24d27KVnIjJZXG26', NULL, 'hatand@bk.ru', 0, 'PwrSFFEtXUm7A4jFScN2HQvkJrAKKwh1', 10, 1457106539, 1458064151, 'Asia/Novosibirsk', 'Igor Kharchenko', 'Male', 20, '', '<p>Hello to everyone! I am the admin of this blog.</p>\r\n\r\n<p><img alt="Roman Bukin" src="https://icdn.lenta.ru/images/0000/0110/000001107466/pic_1358563301.jpg" style="height:255px; width:340px" /></p>\r\n', 1458064150),
+(2, 'Mikhail_Lavrentiev', '$2y$13$aE6qEDc2Xo/0Cyxq5Ag7VenvcmmP5BvgS8niERW8wMjsBVDasOmYG', NULL, 'mikhail_lavrentiev@backmeup.cz', 0, 'S4zm8pKokYT9f6vssQQQ47LYtgldoOKx', 10, 1457106600, 1457873392, 'Europe/Moscow', NULL, 'Not Set', NULL, '', NULL, 1457873392),
+(3, 'Nicolay', '$2y$13$ppaVQWWIO6zHprieWYl7cuk6hAfWfSW2pgEifdY0HlOvCgu.Mkx3y', NULL, 'nicolay-was-here@nicolay.info', 1, '8Z7R2AsH6wtppA2J6S_ns3BYGzeVL0mF', 10, 1457107116, 1457965420, 'Europe/Amsterdam', 'Nicolay!!11', 'Not Set', 20, 'Kurgan', '<p>I&#39;m Nicolay, one of the technicians of <strong>G</strong>eneral <strong>B</strong>a<strong>k</strong>er!</p>\r\n', 1457965420),
+(4, 'NAT_Korea_User', '$2y$13$q8ShM7LKj2tukxZf4gcEYu0xa0eqlzNG6BTR0HV9NCM66A/JsiM9q', NULL, 'van.shi@nkorea.kp', 0, '2zgiyxsqf9EI1HIKMXfNi7mLyOi219Lt', 10, 1457125148, 1457550159, 'Europe/Moscow', NULL, 'Not Set', NULL, '', NULL, 1457550159),
+(6, 'Must_Be_Deleted', '$2y$13$.0psxj6CwefyG41WFLQNXeWfZMLatNI5fWsTAfEuJtLZkNOuBIk9.', NULL, 'must_be_deleted@yii.local', 0, 'HbDkrYQgQe276Qd2hMV1DpLzzUnrvQVb', 10, 1457296163, 1457550176, 'Europe/Moscow', NULL, 'Not Set', NULL, '', NULL, 1457550176),
+(33, 'Seryoga_Vasilyev', '$2y$13$SfWJIqGArFVfCZUyYxer4.xGBBt.JgrMpzbB7b3pPSXk9zNzz1RqS', NULL, 'seryoga_vasilyev-890@lenta.ru', 1, 'I1Dp0xu6nATtmZc6E2PCscLKZx09clMc', 10, 1457551828, 1457877714, 'Europe/Moscow', 'Sergey Vasyliev', 'Male', 20, 'Magadan', '<p>I am like Jason Statham: the same restless and love weapon&nbsp;:D</p>\r\n\r\n<p><img alt="" src="https://s-media-cache-ak0.pinimg.com/236x/19/dc/9e/19dc9e49e7e0dd7f6709d342a81a9806.jpg" style="height:328px; width:236px" /></p>\r\n', 1457877714),
+(34, 'fff', '$2y$13$P4TbaBwCqFR9CU4V4KBO1.Mz58cCUFOo/PGXCmwjTVx0hGE97BmQ.', NULL, 'fff@ggg.ggg', 0, 'Ij9j3zL8ZLGHGAlhveR6BHdY5ft4hfAD', 10, 1457771991, 1457772810, 'Antarctica/Casey', '', 'Not Set', NULL, '', '', 1457771990);
 
 --
 -- Ограничения внешнего ключа сохраненных таблиц
 --
+
+--
+-- Ограничения внешнего ключа таблицы `blog`
+--
+ALTER TABLE `blog`
+  ADD CONSTRAINT `FK_blog_blogAuthor_assignment` FOREIGN KEY (`author_id`) REFERENCES `user` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Ограничения внешнего ключа таблицы `comment`
@@ -397,11 +482,9 @@ ALTER TABLE `comment`
 
 --
 -- Ограничения внешнего ключа таблицы `post`
--- При удалении одной сущности user каскадно удаляются все сущности post, 
--- далее по цепочке точно также удаляется comment
 --
 ALTER TABLE `post`
-  ADD CONSTRAINT `FK_post_user_assignment` FOREIGN KEY (`author_id`) REFERENCES `user` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT `FK_blog_post_assignment` FOREIGN KEY (`blog_id`) REFERENCES `blog` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;

@@ -14,6 +14,18 @@ use kartik\icons\Icon;
 $this->title = "Our Post Overview";
 $this->params['breadcrumbs'][] = "Our Post Overview";
 ?>
+
+<!-- Blog Header -->
+<div class="blog-header">
+    <h2 align="center"><?= Html::encode($blog->name); ?></h2>
+    <br/>
+    <h4 align="center"><?= Html::encode($blog->title); ?></h4>
+    <br/>
+    <h4 align="center">Blog Author: <?= Html::a(Html::encode($posts_author->username), ['user/view', 'id' => $posts_author->id]) ?></h4>
+    <hr/>
+</div>
+<!-- End Blog Header -->
+
 <div class="post-our_posts">
     <?php if(empty($posts)): ?>
         <?= Alert::widget([
@@ -28,12 +40,13 @@ $this->params['breadcrumbs'][] = "Our Post Overview";
     <?php $formatter = Yii::$app->formatter; ?>
 
     <?php foreach($posts as $post): ?>
-        <h4><?= Html::a(Html::encode("{$post->title}"), ['post/view', 'id' => $post->id]) ?></h4>
-        <h5><?= Html::encode("{$post->anons}") ?></h5>
+        <h3><?= Html::a(Html::encode("{$post->title}"), ['post/view', 'id' => $post->id]) ?></h3>
+        <h4><?= Html::encode("{$post->anons}") ?></h4>
 
-        <b><?= Icon::show('user') . $post_author->username ?></b>
+        <b><?= Icon::show('user') . $posts_author->username ?></b>
         |  <i><?= Icon::show('calendar') . $formatter->asDatetime($post->publish_date) ?></i>
         |  <?= Icon::show('comment') . $post->comments_count ?>
+        <?= $this->render('index_CategoriesButtons', ['post' => $post, 'categories_all' => $categories_all]); ?>
         |  Publish Status: <b><?= Html::encode("{$post->publish_status}") . "ed" ?> | </b>
 
         <!-- Buttons -->

@@ -28,9 +28,9 @@ AppAsset::register($this);
 
 <div class="wrap">
     <?php
-    \Yii::$app->language = 'ru-RU';
+    \Yii::$app->language = 'en-US';
     NavBar::begin([
-        'brandLabel' => Icon::show('home') . 'International Blog',
+        'brandLabel' => Icon::show('home') . 'International Blog System',
         'brandUrl' => Yii::$app->homeUrl,
         'options' => [
             'class' => 'my-navbar navbar-fixed-top',
@@ -38,10 +38,10 @@ AppAsset::register($this);
     ]);
     $menuItems = [];
     if (Yii::$app->user->isGuest) {
-        $menuItems[] = ['label' => 'Signup', 'url' => ['/site/signup']];
-        $menuItems[] = ['label' => 'Login', 'url' => ['/site/login']];
+        $menuItems[] = ['label' => Icon::show('user-plus') . 'Signup', 'url' => ['/site/signup']];
+        $menuItems[] = ['label' => Icon::show('users') . 'Login', 'url' => ['/site/login']];
     } else {
-        $menuItems[] = ['label' => Icon::show('cog') . 'Console', 'url' => ['/site/admin']];
+        $menuItems[] = ['label' => Icon::show('cog') . 'Console', 'url' => ['/site/console']];
         $menuItems[] = ['label' => Icon::show('user') . 'User Page', 'url' => ['/user/view', 'id' => Yii::$app->user->id]];
         $menuItems[] = '<li>'
             . Html::beginForm(['/site/logout'], 'post')
@@ -70,7 +70,7 @@ AppAsset::register($this);
 
 <footer class="footer">
     <div class="container">
-        <p class="pull-left">&copy; International Blog, <?= date('Y') ?></p>
+        <p class="pull-left">&copy; International Blog System, <?= date('Y') ?></p>
 
         <p class="pull-right"><?= Yii::powered() ?></p>
     </div>

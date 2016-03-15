@@ -2,9 +2,12 @@
 
 namespace app\controllers;
 
-use app\models\EarthCountries;
 use Yii;
+use app\models\EarthCountries;
+use app\models\TimeOffset;
 use app\models\User;
+use app\models\Blog;
+use yii\data\ArrayDataProvider;
 use yii\data\ActiveDataProvider;
 use yii\data\Pagination;
 use yii\helpers\ArrayHelper;
@@ -33,15 +36,20 @@ class UserController extends Controller
 
     /**
      * Lists all User models.
+     * All registered users can view full users list,
+     *      but yes, only admins can update/delete users from this list.
+     * TODO: There MUST be normal realization of timezone offset!
      * @return mixed
      */
     public function actionIndex()
     {
-        if(!Yii::$app->user->isGuest) {
+        $model = $this->findModel(Yii::$app->user->id);
+        if((!Yii::$app->user->isGuest) && ($model->isAdmin())) {
             $pagination = new Pagination([
                 'defaultPageSize' => 10,
                 'totalCount' => User::find()->count(),
             ]);
+
             $dataProvider = new ActiveDataProvider([
                 'query' => User::find(),
                 'pagination' => [
@@ -51,9 +59,10 @@ class UserController extends Controller
 
             return $this->render('index', [
                 'dataProvider' => $dataProvider,
+                'pagination' => $pagination,
             ]);
         } else {
-            return $this->redirect('@app/views/site/login.php');
+            return $this->redirect(['user/view', 'id' => Yii::$app->user->id, 'error' => 'no_rights']);
         }
     }
 
@@ -68,30 +77,10 @@ class UserController extends Controller
         if(!Yii::$app->user->isGuest) {
             return $this->render('view', [
                 'model' => $model,
+                'blog' => Blog::getBlogByAuthorId($id),
             ]);
         } else {
-            return $this->redirect('@app/views/site/login.php');
-        }
-    }
-
-    /**
-     * Creates a new User model.
-     * If creation is successful, the browser will be redirected to the 'view' page.
-     * @throws HttpException if transaction is unsuccessful
-     * @return mixed
-     */
-    public function actionCreate()
-    {
-        $model = new User;
-        if ($model->load(Yii::$app->request->post())) {
-            if($model->saveUser($model))
-                return $this->redirect(['view', 'id' => $model->id]);
-            else
-                throw new HttpException(400, 'Error during saving comment info in the database');
-        } else {
-            return $this->render('create', [
-                'model' => $model,
-            ]);
+            return $this->redirect(['site/login', 'logined' => 'false']);
         }
     }
 
@@ -105,27 +94,29 @@ class UserController extends Controller
     public function actionUpdate($id)
     {
         $model = $this->findModel($id);
-        if(!Yii::$app->user->isGuest && $model->checkUDPrivilegies($model)) {
-
-            if ($model->load(Yii::$app->request->post())) {
-                if($model->saveUser($model)) {
-                    return $this->redirect(['view', 'id' => $model->id]);
+        if(!Yii::$app->user->isGuest) {
+            if($model->checkUDPrivilegies($model)) {
+                if ($model->load(Yii::$app->request->post())) {
+                    TimeOffset::setTimezoneCookie($model->timezone); # Updates timezone cookie
+                    if ($model->saveUser($model)) {
+                        return $this->redirect(['view', 'id' => $model->id]);
+                    } else throw new HttpException(400, 'Error during saving comment info in the database');
+                } else {
+                    return $this->render('update', [
+                        'model' => $model,
+                        'timeZonesList' => $model->getTimeZoneSelect(),
+                    ]);
                 }
-                else
-                    throw new HttpException(400, 'Error during saving comment info in the database');
-            } else {
-                return $this->render('update', [
-                    'model' => $model,
-                ]);
-            }
+            } else return $this->redirect(['user/view', 'id' => Yii::$app->user->id, 'error' => 'no_rights']);
         } else {
-            return $this->redirect('@app/views/site/error_user.php');
+            return $this->redirect(['site/login', 'logined' => 'false']);
         }
     }
 
     /**
      * Deletes an existing Users model.
      * If deletion is successful, the browser will be redirected to the 'index' page.
+     * The cookie with timezone value isn't being deleted.
      * @throws HttpException if transaction is unsuccessful
      * @param integer $id
      * @return mixed
@@ -133,80 +124,70 @@ class UserController extends Controller
     public function actionDelete($id)
     {
         $model = $this->findModel($id);
-        if(!Yii::$app->user->isGuest && $model->checkUDPrivilegies($model)) {
-            if($model->deleteUser($model))
-                return $this->redirect(['index']);
-            else
-                throw new HttpException(400, 'Error during saving comment info in the database');
+        if(!Yii::$app->user->isGuest) {
+            if($model->checkUDPrivilegies($model)) {
+                if ($model->deleteUser($model))
+                    return $this->goHome();
+                else
+                    throw new HttpException(400, 'Error during saving comment info in the database');
+            } else
+                return $this->redirect(['user/view', 'id' => Yii::$app->user->id, 'error' => 'no_rights']);
         } else {
-            return $this->redirect('@app/views/site/login.php');
+            return $this->redirect(['site/login', 'logined' => 'false']);
         }
     }
 
     /**
      * Assigns a role to user.
-     * First registered user in the blog is an admin who can assign roles to others.
+     * For assign a first admin you need to run 'yii rbac/init-first-admin [id]',
+     * where [id] (without brackets) is an ID of registered user
      */
     public function actionAssign($id=null, $role=null)
     {
         $model = new User;
         $isAdmin = $model->isAdmin();
-        # True if we DON'T have any admins or current user is an admin
-        if(!Yii::$app->user->isGuest && $isAdmin) {
-            $pagination = new Pagination([
-                'defaultPageSize' => 10,
-                'totalCount' => User::find()->count(),
-            ]);
-            $dataProvider = new ActiveDataProvider([
-                'query' => User::find()
-                            ->offset($pagination->offset)
-                            ->limit($pagination->limit),
-                'pagination' => [
-                    'pageSize' => 10,
-                ]
-            ]);
-            if(is_null($dataProvider))
-            {
-                return $this->render('assign', [
-                    'dataProvider' => $dataProvider,
-                    'modelIsNull' => true,
+        # True if current user is an admin
+        if(!Yii::$app->user->isGuest) {
+            if($isAdmin) {
+                $pagination = new Pagination([
+                    'defaultPageSize' => 10,
+                    'totalCount' => User::find()->count(),
                 ]);
-            } else {
-                if($id != null) {
-                    $model->setRole($id, $role);
+                $dataProvider = new ActiveDataProvider([
+                    'query' => User::find()
+                        ->offset($pagination->offset)
+                        ->limit($pagination->limit),
+                    'pagination' => [
+                        'pageSize' => 10,
+                    ]
+                ]);
+                if (is_null($dataProvider)) {
                     return $this->render('assign', [
                         'dataProvider' => $dataProvider,
-                        'model' => $model,
-                        'modelIsNull' => false,
-                        'setRole' => ($role=='admin') ? 'Administrator' : 'Author',
-                        'assigned_user' => User::findIdentity($id),
+                        'modelIsNull' => true,
                     ]);
                 } else {
-                    return $this->render('assign', [
-                        'dataProvider' => $dataProvider,
-                        'model' => $model,
-                        'modelIsNull' => false,
-                    ]);
+                    if ($id != null) {
+                        $model->setRole($id, $role);
+                        return $this->render('assign', [
+                            'dataProvider' => $dataProvider,
+                            'model' => $model,
+                            'modelIsNull' => false,
+                            'setRole' => ($role == 'admin') ? 'Administrator' : 'Author',
+                            'assigned_user' => User::findIdentity($id),
+                        ]);
+                    } else {
+                        return $this->render('assign', [
+                            'dataProvider' => $dataProvider,
+                            'model' => $model,
+                            'modelIsNull' => false,
+                        ]);
+                    }
                 }
-            }
+            } else
+                return $this->redirect(['user/view', 'id' => Yii::$app->user->id, 'error' => 'no_rights']);
         } else {
-            return $this->redirect('@app/views/site/login.php');
-        }
-    }
-
-    public function actionShowEmail($mode = 'hide')
-    {
-        $user = $this->findModel(Yii::$app->user->id);
-        if($mode == 'show')
-        {
-            $user->show_email = 1;
-            $user->saveUser($user);
-            return $this->redirect(['site/admin', 'status_em' => 'ok']);
-        } elseif($mode == 'hide')
-        {
-            $user->show_email = 0;
-            $user->saveUser($user);
-            return $this->redirect(['site/admin', 'status_em' => 'ok']);
+            return $this->redirect(['site/login', 'logined' => 'false']);
         }
     }
 
@@ -222,7 +203,7 @@ class UserController extends Controller
         if (($model = User::findOne($id)) !== null) {
             return $model;
         } else {
-            throw new NotFoundHttpException('The requested page does not exist.');
+            throw new NotFoundHttpException('The requested user does not exist.');
         }
     }
 }

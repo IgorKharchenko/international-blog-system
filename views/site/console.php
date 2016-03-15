@@ -3,6 +3,7 @@ use yii\helpers\Html;
 use yii\bootstrap\Button;
 use yii\bootstrap\ButtonDropdown;
 use yii\bootstrap\Tabs;
+use app\models\Blog;
 
 /* @var $this yii\web\View */
 
@@ -10,22 +11,27 @@ $this->title = 'Admin Page';
 ?>
 
 <div class="site-admin">
-    <?php
+<?php if(!$assign_permitted)
+        echo $this->render('console_BlogTab', ['blog' => Blog::getBlogByAuthorId(Yii::$app->user->id)]);
+     ?>
+
+<?php if($assign_permitted):
         echo Tabs::widget([
             'items' => [
                 [
-                    'label' => 'Users',
-                    'content' => $this->render('admin_UsersTab', ['assign_permitted' => $assign_permitted]),
+                    'label' => 'Your Blog',
+                    'content' => $this->render('console_BlogTab', ['blog' => Blog::getBlogByAuthorId(Yii::$app->user->id)]),
                 ],
                 [
-                    'label' => 'Posts',
-                    'content' => $this->render('admin_PostsTab'),
+                    'label' => 'Users',
+                    'content' => $this->render('console_UsersTab', ['assign_permitted' => $assign_permitted]),
                 ],
                 [
                     'label' => 'Settings',
-                    'content' => $this->render('admin_SettingsTab'),
+                    'content' => $this->render('console_SettingsTab'),
                 ],
             ],
         ]);
+        endif;
     ?>
 </div>

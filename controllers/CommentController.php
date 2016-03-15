@@ -48,11 +48,12 @@ class CommentController extends Controller
      */
     public function actionCreate($post_id)
     {
+        if(Yii::$app->user->isGuest) {return $this->redirect(['site/login', 'logined' => 'false']);}
         $model = new Comment();
         $post = Post::findOne($post_id);
         if($model->checkCPrivilegies()) {
             if ($model->load(Yii::$app->request->post())) {
-                if($model->saveComment($model)) {
+                if($model->saveComment($model->getData())) {
                     $model->updateCommentsCount($post, "count++");
                     return $this->redirect(['post\view', 'id' => $model->id]);
                 }
@@ -63,7 +64,7 @@ class CommentController extends Controller
                 ]);
             }
         } else {
-            return $this->redirect('@app/views/site/login.php');
+            return $this->redirect(['user/index', 'id' => Yii::$app->user->id, 'error' => 'no-rights']);
         }
     }
 
@@ -76,6 +77,7 @@ class CommentController extends Controller
      */
     public function actionUpdate($id, $post_id=null)
     {
+        if(Yii::$app->user->isGuest) {return $this->redirect(['site/login', 'logined' => 'false']);}
         $model = $this->findModel($id);
         if($model->checkUDPrivilegies($model)) {
             if ($model->load(Yii::$app->request->post())) {
@@ -89,7 +91,7 @@ class CommentController extends Controller
                 ]);
             }
         } else {
-            return $this->redirect('@app/views/site/login.php');
+            return $this->redirect(['user/index', 'id' => Yii::$app->user->id, 'error' => 'no-rights']);
         }
     }
 
@@ -102,16 +104,17 @@ class CommentController extends Controller
      */
     public function actionDelete($id, $post_id=null)
     {
+        if(Yii::$app->user->isGuest) {return $this->redirect(['site/login', 'logined' => 'false']);}
         $model = $this->findModel($id);
         $post = Post::findOne($post_id);
         if($model->checkUDPrivilegies($model)) {
-            if($model->saveComment($model)) {
+            if($model->deleteComment($model)) {
                 $model->updateCommentsCount($post, "count--");
                 return $this->redirect(['post/view', 'id' => $post_id]);
             }
             else throw new HttpException(400, 'Error during saving comment info in the database');
         } else {
-            return $this->redirect('@app/views/site/login.php');
+            return $this->redirect(['user/index', 'id' => Yii::$app->user->id, 'error' => 'no-rights']);
         }
     }
 
@@ -127,7 +130,7 @@ class CommentController extends Controller
         if (($model = Comment::findOne($id)) !== null) {
             return $model;
         } else {
-            throw new NotFoundHttpException('The requested page does not exist.');
+            throw new NotFoundHttpException('The requested comment does not exist.');
         }
     }
 }
