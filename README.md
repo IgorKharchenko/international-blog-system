@@ -1,25 +1,18 @@
-Yii2 Simple Blog
-================
+IBS: International Blog System
+==============================
 
-The blog contains the basic features including user login/logout, user registration.
+The blog system contains the basic features including user login/logout, user registration.
 
-An author can create post, update and delete own posts; also he can update own user information: nickname and email.
+Anyone who was being registered can make own blog with an admin rights.
 
-An admin can do anything he need excluding, obviously, viewing user password hashes :D
-
+An admin of our blog(author privilegies) can create post, update and delete own posts; also he can update own user information: nickname, email, timezone, about yourself and so on.
 Authors can make drafts and published posts.
 
-Also the blog contains admin privilegies assignment page, which works if the command `yii rbac/init-first-admin [id]` was send.
+An admin of site(admin privilegies) can do anything he needed excluding, obviously, viewing user password hashes :D
 
-TODO
-----
-	— Console
-		— Timezone check is needed;
-		— Show Email checkbox is needed.
+Also, all the time stamps are displayed depending on user timezone.
+The time saves in the database in GMT +0000 timezone and any manipulations with time is doing under influence of local time zone.
+To init GMT +0000 server timezone you need to run the command `yii site/init-greenwich-timezone` on the console.
 
-P.S. 
-----
-
-I've invented many bicycles that I forgot to tie any wheels. >_<
-
-I'm going to refactor this completely in the near future.
+Also the blog contains admin privilegies assignment page that available for admins. 
+For assign first admin, you need run the command `yii rbac/init-first-admin [id]`, where id(without brackets) is an user ID.
