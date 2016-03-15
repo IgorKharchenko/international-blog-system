@@ -29,7 +29,7 @@ $this->params['breadcrumbs'][] =  substr($this->title, 0, 200);
 
             <b><?= Icon::show('user') . Html::a(Html::encode($post_author->username), ['user/view', 'id' => $post_author->id]) ?></b>
             |  <i><?= Icon::show('calendar') . $formatter->asDatetime($model->publish_date) ?></i>
-            <?= $this->render('index_CategoriesButtons', ['post' => $model, 'categories_all' => $categories_all]); ?>
+            <?= $this->render('index_CategoriesButtons', ['post' => $model, 'categories_all' => $categories_all, 'blog' => $blog]); ?>
             <!-- Buttons -->
             <?php if($userHasPrivilegies_Post): ?>
                 |
