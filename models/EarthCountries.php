@@ -53,4 +53,16 @@ class EarthCountries extends ActiveRecord
             ->all();
     }
 
+    /**
+     * Gets a country english name by her id
+     * @param $id
+     * @return mixed $query Country information
+     */
+    public static function getCountryNameById($id)
+    {
+        if(is_int($id))
+            return $country_name_en = EarthCountries::findOne($id)->name_en;
+        else
+            return '';
+    }
 }
