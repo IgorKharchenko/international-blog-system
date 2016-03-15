@@ -5,7 +5,6 @@ namespace app\models;
 use Yii;
 use yii\helpers\ArrayHelper;
 
-
 /**
  * This is the model class for table "post".
  *
@@ -14,8 +13,10 @@ use yii\helpers\ArrayHelper;
  * @property string $anons
  * @property string $content
  * @property integer $author_id
+ * @property integer $blog_id
  * @property integer $publish_status
  * @property integer $publish_date
+ * @property string $categories
  */
 class Post extends \yii\db\ActiveRecord
 {
@@ -27,6 +28,8 @@ class Post extends \yii\db\ActiveRecord
         return '{{%post}}';
     }
 
+    public $categories_selection = Array();
+
     /**
      * @inheritdoc
      */
@@ -35,8 +38,8 @@ class Post extends \yii\db\ActiveRecord
         return [
             [['title'], 'required'],
             [['anons', 'content', 'publish_status'], 'string'],
-            [['publish_date'], 'safe'],
-            [['title'], 'string', 'max' => 255]
+            [['publish_date', 'categories_selection'], 'safe'],
+            [['title'], 'string', 'max' => 255],
         ];
     }
 
@@ -57,18 +60,6 @@ class Post extends \yii\db\ActiveRecord
     }
 
     /**
-     * getLastInsertedID doesn't work there,
-     * that's why I wrote this bibycle because we need to use the value
-     * which has been inserted previously,
-     * but it's not guaranteed that insertion has been done by OWN user
-     */
-    public function getNewId() {
-        $query = Post::find()
-            ->max('id');
-        return $query + 1;
-    }
-
-    /**
      * Gets all the data of the post (post/create)
      */
     public function getPostData()
@@ -77,26 +68,30 @@ class Post extends \yii\db\ActiveRecord
         $post->title = $this->title;
         $post->anons = $this->anons;
         $post->content = $this->content;
+        $post->blog_id = $_GET['blog_id'];
         $post->author_id = Yii::$app->user->id;
         $post->publish_status = $this->publish_status;
         $post->publish_date = time();
+        $post->categories = ($this->categories_selection != '') ? implode(',', $this->categories_selection) : '';
 
         return $post;
     }
 
     /**
-     * Finds all published posts with given offset and limit
-     * @param $pagination| Gives offset and limit of this query
-     * @return array|\yii\db\ActiveRecord[]|
+     * Gets all the post categories
+     * @param $blog Blog model
+     * @param $post Post model
+     * @return array|\yii\db\ActiveRecord[]
      */
-    public function findAllDisplayedPosts($pagination)
+    public static function getPostCategoriesAsString($blog, $post)
     {
-        return Post::find()
-            ->where('publish_status=:publish_status', [':publish_status' => 'publish'])
-            ->orderBy('publish_date')
-            ->offset($pagination->offset)
-            ->limit($pagination->limit)
-            ->all();
+        $query = Post::find()
+            ->select(['categories'])
+            ->where(['id' => $post->id])
+            ->andWhere(['blog_id' => $blog->id])
+            ->asArray()
+            ->one();
+        return $categories = implode(',',$query->categories);
     }
 
     /**
@@ -149,6 +144,51 @@ class Post extends \yii\db\ActiveRecord
     }
 
     /**
+     * Gets selected categories
+     * @param $model
+     * @return array
+     */
+    public function getCategories($model)
+    {
+        return $this->categories_selection;
+    }
+
+    /**
+     * Creates an array for multiple categories selection
+     * @return array
+     */
+    public function createArrayForCategoriesSelection()
+    {
+        return ArrayHelper::map(Category::getBlogCategories(Blog::getBlogByAuthorId(Yii::$app->user->id)), 'id', 'name');
+    }
+
+    /**
+     * Finds all published posts with given offset and limit
+     * @param $pagination| Gives offset and limit of this query
+     * @return array|\yii\db\ActiveRecord[]|
+     */
+    public function findAllDisplayedPosts($pagination, $blog_id, $category='')
+    {
+        if($category == '')
+            return Post::find()
+            ->where(['publish_status' => 'publish'])
+            ->andWhere(['blog_id' => $blog_id])
+            ->orderBy('publish_date')
+            ->offset($pagination->offset)
+            ->limit($pagination->limit)
+            ->all();
+        else
+            return Post::find()
+            ->where(['publish_status' => 'publish'])
+            ->andWhere(['blog_id' => $blog_id])
+            ->andWhere(['LIKE', 'categories', $category])
+            ->orderBy('publish_date')
+            ->offset($pagination->offset)
+            ->limit($pagination->limit)
+            ->all();
+    }
+
+    /**
      * Finds author username of this post
      * @return mixed|null if error is occured
      */
@@ -181,6 +221,33 @@ class Post extends \yii\db\ActiveRecord
                 ->where('publish_status=:status', [':status' => $status])
                 ->andWhere('author_id=:author_id', [':author_id' => Yii::$app->user->id]);
         }
+    }
+
+    /**
+     * Gets a defined in $limit amount of latest posts
+     * @param int $limit Limit of displayed posts
+     * @return \yii\db\ActiveQuery
+     */
+    public static function findLatestPosts($limit)
+    {
+        // Firstly select all public blogs
+        $public_blogs = Blog::find()
+            ->select('id')
+            ->where('is_private=0')
+            ->limit($limit)
+            ->all();
+        $public_blogs_string = '';
+        foreach($public_blogs as $blog)
+            $public_blogs_string .= $blog->id . ',';
+        $public_blogs_string = substr($public_blogs_string, 0, strrpos($public_blogs_string, ',')); # deletes all the symbols after the last comma in string
+
+        // Secondly select all latest posts in public blogs
+        return $query = Post::find()
+            ->where('publish_date < :now', [':now' => time()])
+            ->andWhere('blog_id IN ('.$public_blogs_string.')')
+            ->limit($limit)
+            ->orderBy('publish_date DESC')
+            ->all();
     }
 
     /**
@@ -225,7 +292,8 @@ class Post extends \yii\db\ActiveRecord
      */
     public function checkCPrivilegies()
     {
-        return (\Yii::$app->user->can('createPost'));
+        $can_create_blog = (Blog::getBlogByAuthorId(Yii::$app->user->id)->author_id === Yii::$app->user->id);
+        return (\Yii::$app->user->can('createPost') && $can_create_blog);
     }
 
     /**
@@ -233,10 +301,9 @@ class Post extends \yii\db\ActiveRecord
      * @param $model
      * @return bool
      */
-    public function checkUDPrivilegies($model)
+    public function checkUDPrivilegies($post)
     {
         return ((Yii::$app->user->can('updatePost') && Yii::$app->user->can('deletePost'))
-            || (Yii::$app->user->can('updateOwnPost', ['post' => $model]) && Yii::$app->user->can('deleteOwnPost', ['post' => $model]) ));
+            || (Yii::$app->user->can('updateOwnPost', ['post' => $post]) && Yii::$app->user->can('deleteOwnPost', ['post' => $post]) ));
     }
-
 }
