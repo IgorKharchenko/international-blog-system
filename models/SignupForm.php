@@ -13,6 +13,7 @@ class SignupForm extends Model
     public $username;
     public $email;
     public $password;
+    public $timezone;
 
     /**
      * @inheritdoc
@@ -24,6 +25,7 @@ class SignupForm extends Model
             ['username', 'required'],
             ['username', 'unique', 'targetClass' => '\app\models\User', 'message' => 'This username has already been taken.'],
             ['username', 'string', 'min' => 2, 'max' => 255],
+            [['username'], 'match', 'pattern' => '/^[a-zA-Z][a-zA-Z0-9_-]*/', 'message' => 'Username can contain only english letters without spaces.'],
 
             ['email', 'filter', 'filter' => 'trim'],
             ['email', 'required'],
@@ -33,6 +35,8 @@ class SignupForm extends Model
 
             ['password', 'required'],
             ['password', 'string', 'min' => 6, 'max' => 255],
+
+            ['timezone', 'string']
         ];
     }
 
@@ -50,12 +54,14 @@ class SignupForm extends Model
         $user = new User();
         $user->username = $this->username;
         $user->email = $this->email;
+        $user->timezone = ($this->timezone != '') ? $this->timezone : 'Europe/Moscow';
         $user->created_at = time();
         $user->last_login = time();
         $user->status = 10;
+        TimeOffset::setTimezoneCookie($this->timezone);
         $user->setPassword($this->password);
         $user->generateAuthKey();
-        $user->save();
+        $user->saveUser($user);
 
         $auth = Yii::$app->authManager;
         $adminRole = $auth->getRole('admin');
