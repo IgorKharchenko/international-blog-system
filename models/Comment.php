@@ -31,8 +31,8 @@ class Comment extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['id', 'title', 'content', 'author_id', 'post_id'], 'required'],
-            [['id', 'author_id', 'post_id'], 'integer'],
+            [['title', 'content', 'author_id', 'post_id'], 'required'],
+            [['author_id', 'post_id'], 'integer'],
             [['content'], 'string'],
             [['publish_date'], 'safe'],
             [['title'], 'string', 'max' => 255]
@@ -81,14 +81,11 @@ class Comment extends \yii\db\ActiveRecord
     public function getData()
     {
         $comment = new Comment;
-        $comment->id = $this->getNewId();
         $comment->title = $this->title;
         $comment->content = $this->content;
         $comment->post_id = $_GET['id'];
         $comment->author_id = Yii::$app->user->id;
         $comment->publish_date = time();
-        $comment->save();
-
         return $comment;
     }
 
@@ -150,17 +147,16 @@ class Comment extends \yii\db\ActiveRecord
     {
         return Comment::find()
             ->where(['post_id' => $id])
+            ->orderBy('publish_date')
             ->offset($pagination->offset)
             ->limit($pagination->limit)
-            ->orderBy('publish_date')
             ->all();
     }
 
 
     /**
      * Finds all comments where 'post_id' IN (string).
-     * @param $author_IDs| String contains all post ID's
-     * @param $pagination| Pagination offset and limit values for this query
+     * @param $post_IDs| String contains all post ID's
      * @return array|\yii\db\ActiveRecord[] Returns an array contains info about all comments
      */
     public function findByPostIDs($post_IDs)
