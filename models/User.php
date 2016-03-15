@@ -7,7 +7,9 @@ use yii\behaviors\TimestampBehavior;
 use yii\db\Query;
 use yii\db\ActiveRecord;
 use yii\web\IdentityInterface;
+use yii\web\View;
 use yii\helpers\Html;
+use yii\helpers\Url;
 use yii\helpers\ArrayHelper;
 
 /**
@@ -23,6 +25,7 @@ use yii\helpers\ArrayHelper;
  * @property integer $status
  * @property integer $created_at
  * @property integer $updated_at
+ * @property string $timezone
  * @property string $full_name
  * @property string $sex
  * @property integer $country_id
@@ -32,6 +35,7 @@ use yii\helpers\ArrayHelper;
 class User extends ActiveRecord implements IdentityInterface
 {
     const STATUS_DELETED = 0;
+    const STATUS_BANNED = 626;
     const STATUS_ACTIVE = 10;
 
     /**
@@ -66,12 +70,12 @@ class User extends ActiveRecord implements IdentityInterface
     {
         return [
             [['username', 'email', 'auth_key', 'status'], 'required'],
-            [['status', 'country_id'], 'integer'],
+            [['status', 'country_id', 'show_email'], 'integer'],
             ['status', 'default', 'value' => self::STATUS_ACTIVE],
             ['status', 'in', 'range' => [self::STATUS_ACTIVE, self::STATUS_DELETED]],
-            [['created_at', 'updated_at'], 'safe'],
+            [['created_at', 'updated_at', 'last_login'], 'safe'],
             [['username', 'password_hash', 'password_reset_token', 'email', 'auth_key', 'full_name', 'city'], 'string', 'max' => 255],
-            [['about'], 'string'],
+            [['about', 'sex', 'timezone'], 'string'],
         ];
     }
 
@@ -91,6 +95,8 @@ class User extends ActiveRecord implements IdentityInterface
             'status' => 'Status',
             'created_at' => 'Created At',
             'updated_at' => 'Updated At',
+            'last_login' => 'Last Login',
+            'timezone' => 'Time Zone',
             'full_name' => 'Full Name',
             'sex' => 'Sex',
             'country_id' => 'Country ID',
@@ -144,8 +150,8 @@ class User extends ActiveRecord implements IdentityInterface
 
     /**
      * Sets a role to selected user
-     * @param $id| ID of selected user
-     * @param $role
+     * @param mixed $id| ID of selected user
+     * @param mixed $setRole| Role that will be setted
      */
     public function setRole($id, $setRole)
     {
@@ -167,6 +173,7 @@ class User extends ActiveRecord implements IdentityInterface
             }
         }
     }
+
     /**
      * Do transaction which saves a model
      * @param $model
@@ -227,6 +234,22 @@ class User extends ActiveRecord implements IdentityInterface
     }
 
     /**
+     * Searches time offset by timezone
+     * @param array $timeZonesList All the timezones
+     * @param string $timeZone Selected timezone
+     * @return mixed Offset of the timezone
+     */
+    public function searchOffsetByTimezone($timeZonesList, $timeZone = 'Europe/Moscow')
+    {
+        $region = substr($timeZone, 0, strrpos($timeZone, '/')); # deletes all words after slash
+        $i = 0;
+        do
+        if(ArrayHelper::getValue($timeZonesList[$region][$i], $timeZone))
+            return $timeZonesList[$region][$i][$timeZone];
+        while(++$i < count($timeZonesList[$region]));
+    }
+
+    /**
      * Gets all the data of the user (user/create)
      */
     public function getUserData()
@@ -241,6 +264,82 @@ class User extends ActiveRecord implements IdentityInterface
         $user->last_login = $this->setLastLoginTimestamp();
 
         return $user;
+    }
+
+    /**
+     * Gets the timezone list based on the standard list of timezones in PHP
+     * @param null $selectedZone
+     * @return array $structure A list of all timezones separated by regions
+     */
+    public function getTimeZoneSelect($selectedZone = NULL)
+    {
+        $structure = Array();
+        $regions = array(
+            'Africa' => \DateTimeZone::AFRICA,
+            'America' => \DateTimeZone::AMERICA,
+            'Antarctica' => \DateTimeZone::ANTARCTICA,
+            'Asia' => \DateTimeZone::ASIA,
+            'Atlantic' => \DateTimeZone::ATLANTIC,
+            'Europe' => \DateTimeZone::EUROPE,
+            'Indian' => \DateTimeZone::INDIAN,
+            'Pacific' => \DateTimeZone::PACIFIC
+        );
+        foreach ($regions as $region) {
+            $zones = \DateTimeZone::listIdentifiers($region);
+            $zones = self::prepareZones($zones);
+            $i = 0;
+
+            foreach ($zones as $zone) {
+                $continent = $zone['continent'];
+                $city = $zone['city'];
+                $subcity = $zone['subcity'];
+                $p = $zone['p'];
+                $timeZone = $zone['time_zone'];
+
+                if ($city) {
+                    if ($subcity) {
+                        $city = $city . '/' . $subcity;
+                    }
+                }
+                $structure[$continent][$timeZone] = '(GMT '.$p.') '.$city;
+            }
+        }
+        return $structure;
+    }
+
+    /**
+     * Prepackages all the timezones in separated parts
+     * @param array $timeZones
+     * @return array $zones Prepackaged array
+     */
+    private static function prepareZones(array $timeZones)
+    {
+        $list = array();
+        foreach ($timeZones as $zone) {
+            $time = new \DateTime(NULL, new \DateTimeZone($zone));
+            $p = $time->format('P');
+            if ($p > 13) {
+                continue;
+            }
+            $parts = explode('/', $zone);
+
+            $list[$time->format('P')][] = array(
+                'time_zone' => $zone,
+                'continent' => isset($parts[0]) ? $parts[0] : '',
+                'city' => isset($parts[1]) ? $parts[1] : '',
+                'subcity' => isset($parts[2]) ? $parts[2] : '',
+                'p' => $p,
+            );
+        }
+
+        ksort($list, SORT_NUMERIC);
+
+        $zones = array();
+        foreach ($list as $grouped) {
+            $zones = array_merge($zones, $grouped);
+        }
+
+        return $zones;
     }
 
     /**
@@ -327,7 +426,7 @@ class User extends ActiveRecord implements IdentityInterface
      * Sets $user->show_email property
      * @param string $mode True or false
      */
-    public function setShowEmailProperty($mode = 'false')
+    public function setShowEmailProperty($mode = 0)
     {
         $this->show_email = $mode;
     }
