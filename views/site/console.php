@@ -7,7 +7,7 @@ use app\models\Blog;
 
 /* @var $this yii\web\View */
 
-$this->title = 'Admin Page';
+$this->title = 'Console';
 ?>
 
 <div class="site-admin">

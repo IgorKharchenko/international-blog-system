@@ -16,7 +16,8 @@ use yii\widgets\ActiveForm;
 
     <?= $form->field($model, 'title')->textInput(['maxlength' => true]) ?>
 
-    <?= $form->field($model, 'is_private')->checkbox(['checked ' => ($model->is_private == 1) ? true : false]) ?>
+    <?= $form->field($model, 'is_private')
+             ->checkbox(['checked ' => ($model->is_private == 1) ? true : false]) ?>
 
     <div class="form-group">
         <?= Html::submitButton($model->isNewRecord ? 'Create' : 'Update', ['class' => $model->isNewRecord ? 'btn btn-success' : 'btn btn-primary']) ?>

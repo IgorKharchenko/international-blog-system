@@ -7,7 +7,7 @@ use yii\bootstrap\Tabs;
 use yii\bootstrap\Modal;
 
 /* @var $this yii\web\View */
-/* @var $model app\models\Users */
+/* @var $model app\models\User */
 
 $this->title = 'Info about user ' . $model->username;
 $this->params['breadcrumbs'][] = $model->username;
@@ -15,7 +15,7 @@ $this->params['breadcrumbs'][] = $model->username;
 <?php Pjax::begin(); ?>
 <div class="users-view">
     <!-- Blog Created modal window -->
-    <?php if(isset($_GET['blog']) && $_GET['blog'] == 'created'): ?>
+    <?php if(isset($_GET['blog']) && $_GET['blog'] === 'created'): ?>
         <?php Modal::begin([
             'clientOptions' => ['show' => true]
         ]); ?>
@@ -75,7 +75,7 @@ $this->params['breadcrumbs'][] = $model->username;
         <br/><br/>
 
         <!-- Delete User Button -->
-        <?= Html::a('Delete this user', ['user/delete', 'id' => $model->id], [
+        <?= Html::a('Delete user', ['user/delete', 'id' => $model->id], [
             'class' => 'btn-xs btn-danger',
             'data' => [
                 'confirm' => 'Are you sure you want to delete your own page?',

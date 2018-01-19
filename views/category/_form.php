@@ -11,10 +11,15 @@ use yii\widgets\ActiveForm;
 <div class="category-form">
 
     <?php $form = ActiveForm::begin(); ?>
-    <?= $form->field($model, 'name')->textInput(['maxlength' => true]) ?>
-    <h4>Name of the category must contain only english symbols.</h4>
-    <?= $form->field($model, 'title')->textInput(['maxlength' => true]) ?>
-    <h4>Title of the category can contain any information about the category.</h4>
+    <?= $form->field($model, 'name')->textInput([
+            'maxlength'   => true,
+            'placeholder' => 'Name of category.',
+    ]) ?>
+    <?= $form->field($model, 'title')->textInput([
+            'maxlength' => true,
+            'placeholder' => 'Title of category.',
+    ]) ?>
+    <h5>Title of the category can contain any information about the category.</h5>
 
     <div class="form-group">
         <?= Html::submitButton($model->isNewRecord ? 'Create Category' : 'Update Category', ['class' => $model->isNewRecord ? 'btn btn-success' : 'btn btn-primary']) ?>

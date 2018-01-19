@@ -1,4 +1,5 @@
 <?php
+
 namespace app\models;
 
 use Yii;
@@ -16,21 +17,21 @@ use yii\helpers\ArrayHelper;
  * User model
  *
  * @property integer $id
- * @property string $username
- * @property string $password_hash
- * @property string $password_reset_token
- * @property string $email
+ * @property string  $username
+ * @property string  $password_hash
+ * @property string  $password_reset_token
+ * @property string  $email
  * @property integer $show_email
- * @property string $auth_key
+ * @property string  $auth_key
  * @property integer $status
  * @property integer $created_at
  * @property integer $updated_at
- * @property string $timezone
- * @property string $full_name
- * @property string $sex
+ * @property string  $timezone
+ * @property string  $full_name
+ * @property string  $sex
  * @property integer $country_id
- * @property string $city
- * @property string $about
+ * @property string  $city
+ * @property string  $about
  */
 class User extends ActiveRecord implements IdentityInterface
 {
@@ -53,13 +54,16 @@ class User extends ActiveRecord implements IdentityInterface
     {
         return [
             'timestamp' => [
-                'class' => TimestampBehavior::className(),
+                'class'      => TimestampBehavior::className(),
                 'attributes' => [
                     //ActiveRecord::EVENT_BEFORE_INSERT => 'created_at',
                     //ActiveRecord::EVENT_BEFORE_UPDATE => 'updated_at',
                 ],
-                'value' => function() {return date('U'); } // Unix timestamp
-            ]
+                'value'      => function() {
+                    return date('U');
+                }
+                // Unix timestamp
+            ],
         ];
     }
 
@@ -69,13 +73,65 @@ class User extends ActiveRecord implements IdentityInterface
     public function rules()
     {
         return [
-            [['username', 'email', 'auth_key', 'status'], 'required'],
-            [['status', 'country_id', 'show_email'], 'integer'],
-            ['status', 'default', 'value' => self::STATUS_ACTIVE],
-            ['status', 'in', 'range' => [self::STATUS_ACTIVE, self::STATUS_DELETED]],
-            [['created_at', 'updated_at', 'last_login'], 'safe'],
-            [['username', 'password_hash', 'password_reset_token', 'email', 'auth_key', 'full_name', 'city'], 'string', 'max' => 255],
-            [['about', 'sex', 'timezone'], 'string'],
+            [
+                [
+                    'username',
+                    'email',
+                    'auth_key',
+                    'status',
+                ],
+                'required',
+            ],
+            [
+                [
+                    'status',
+                    'country_id',
+                    'show_email',
+                ],
+                'integer',
+            ],
+            [
+                'status',
+                'default',
+                'value' => self::STATUS_ACTIVE,
+            ],
+            [
+                'status',
+                'in',
+                'range' => [
+                    self::STATUS_ACTIVE,
+                    self::STATUS_DELETED,
+                ],
+            ],
+            [
+                [
+                    'created_at',
+                    'updated_at',
+                    'last_login',
+                ],
+                'safe',
+            ],
+            [
+                [
+                    'username',
+                    'password_hash',
+                    'password_reset_token',
+                    'email',
+                    'auth_key',
+                    'full_name',
+                    'city',
+                ],
+                'string',
+                'max' => 255,
+            ],
+            [
+                [
+                    'about',
+                    'sex',
+                    'timezone',
+                ],
+                'string',
+            ],
         ];
     }
 
@@ -85,23 +141,23 @@ class User extends ActiveRecord implements IdentityInterface
     public function attributeLabels()
     {
         return [
-            'id' => 'ID',
-            'username' => 'Username',
-            'password_hash' => 'Password Hash',
+            'id'                   => 'ID',
+            'username'             => 'Username',
+            'password_hash'        => 'Password Hash',
             'password_reset_token' => 'Password Reset Token',
-            'email' => 'Email',
-            'show_email' => 'Show Email to other users',
-            'auth_key' => 'Auth Key',
-            'status' => 'Status',
-            'created_at' => 'Created At',
-            'updated_at' => 'Updated At',
-            'last_login' => 'Last Login',
-            'timezone' => 'Time Zone',
-            'full_name' => 'Full Name',
-            'sex' => 'Sex',
-            'country_id' => 'Country ID',
-            'city' => 'City',
-            'about' => 'About Yourself',
+            'email'                => 'Email',
+            'show_email'           => 'Show email to other users',
+            'auth_key'             => 'Auth Key',
+            'status'               => 'Status',
+            'created_at'           => 'Created At',
+            'updated_at'           => 'Updated At',
+            'last_login'           => 'Last Login',
+            'timezone'             => 'Time Zone',
+            'full_name'            => 'Full Name',
+            'sex'                  => 'Sex',
+            'country_id'           => 'Country',
+            'city'                 => 'City',
+            'about'                => 'About Yourself',
         ];
     }
 
@@ -111,8 +167,9 @@ class User extends ActiveRecord implements IdentityInterface
     public function beforeSave($insert)
     {
         if (parent::beforeSave($insert)) {
-            if($insert)
+            if ($insert) {
                 $this->created_at = time();
+            }
             $this->updated_at = time();
             return true;
         } else {
@@ -122,6 +179,7 @@ class User extends ActiveRecord implements IdentityInterface
 
     /**
      * Finds if current user is an admin(haves an admin rights)
+     *
      * @return bool
      */
     public function isAdmin()
@@ -133,7 +191,9 @@ class User extends ActiveRecord implements IdentityInterface
 
     /**
      * Gets a role of selected user
-     * @param $id| ID of selected user
+     *
+     * @param $id | ID of selected user
+     *
      * @return string Role of the user
      */
     public function getRole($id)
@@ -142,16 +202,18 @@ class User extends ActiveRecord implements IdentityInterface
         $authorRole = $auth->getRole('author');
         $adminRole = $auth->getRole('admin');
         $getRoles = $auth->getRolesByUser($id);
-        if(ArrayHelper::getValue($getRoles, 'author'))
+        if (ArrayHelper::getValue($getRoles, 'author')) {
             return 'Author';
-        else if(ArrayHelper::getValue($getRoles, 'admin'))
+        } else if (ArrayHelper::getValue($getRoles, 'admin')) {
             return 'Administrator';
+        }
     }
 
     /**
      * Sets a role to selected user
-     * @param mixed $id| ID of selected user
-     * @param mixed $setRole| Role that will be setted
+     *
+     * @param mixed $id      | ID of selected user
+     * @param mixed $setRole | Role that will be setted
      */
     public function setRole($id, $setRole)
     {
@@ -159,17 +221,21 @@ class User extends ActiveRecord implements IdentityInterface
         $authorRole = $auth->getRole('author');
         $adminRole = $auth->getRole('admin');
         $getRoles = $auth->getRolesByUser($id);
-        if($setRole != null) {
-            if($setRole == 'admin') {
-                if(ArrayHelper::getValue($getRoles, 'author'))
+        if ($setRole != null) {
+            if ($setRole == 'admin') {
+                if (ArrayHelper::getValue($getRoles, 'author')) {
                     $auth->revoke($authorRole, $id);
-                if(ArrayHelper::getValue($getRoles, 'admin') == null)
+                }
+                if (ArrayHelper::getValue($getRoles, 'admin') == null) {
                     $auth->assign($adminRole, $id);
-            } elseif($setRole == 'author') {
-                if(ArrayHelper::getValue($getRoles, 'admin'))
+                }
+            } elseif ($setRole == 'author') {
+                if (ArrayHelper::getValue($getRoles, 'admin')) {
                     $auth->revoke($adminRole, $id);
-                if(ArrayHelper::getValue($getRoles, 'author') == null)
+                }
+                if (ArrayHelper::getValue($getRoles, 'author') == null) {
                     $auth->assign($authorRole, $id);
+                }
             }
         }
     }
@@ -184,37 +250,45 @@ class User extends ActiveRecord implements IdentityInterface
 
     /**
      * Searches username by user ID
-     * @param $array| All user that will be displayed
-     * @param $id| ID of selected user
+     *
+     * @param $array | All user that will be displayed
+     * @param $id    | ID of selected user
+     *
      * @return string| string Username of selected user
      */
     public function searchUsernameById($array, $id)
     {
         $i = 0;
-        do
-        if($array[$i]['id'] == $id)
-            return $array[$i]['username'];
-        while(++$i < count($array));
+        do {
+            if ($array[$i]['id'] == $id) {
+                return $array[$i]['username'];
+            }
+        } while (++$i < count($array));
     }
 
     /**
      * Searches time offset by timezone
-     * @param array $timeZonesList All the timezones
-     * @param string $timeZone Selected timezone
+     *
+     * @param array  $timeZonesList All the timezones
+     * @param string $timeZone      Selected timezone
+     *
      * @return mixed Offset of the timezone
      */
     public function searchOffsetByTimezone($timeZonesList, $timeZone = 'Europe/Moscow')
     {
         $region = substr($timeZone, 0, strrpos($timeZone, '/')); # deletes all words after slash
         $i = 0;
-        do
-        if(ArrayHelper::getValue($timeZonesList[$region][$i], $timeZone))
-            return $timeZonesList[$region][$i][$timeZone];
-        while(++$i < count($timeZonesList[$region]));
+        do {
+            if (ArrayHelper::getValue($timeZonesList[$region][$i], $timeZone)) {
+                return $timeZonesList[$region][$i][$timeZone];
+            }
+        } while (++ $i < count($timeZonesList[$region]));
     }
 
     /**
      * Gets all the data of the user (user/create)
+     *
+     * @return User|null
      */
     public function getUserData()
     {
@@ -232,22 +306,24 @@ class User extends ActiveRecord implements IdentityInterface
 
     /**
      * Gets the timezone list based on the standard list of timezones in PHP
+     *
      * @param null $selectedZone
+     *
      * @return array $structure A list of all timezones separated by regions
      */
-    public function getTimeZoneSelect($selectedZone = NULL)
+    public function getTimeZoneSelect($selectedZone = null)
     {
-        $structure = Array();
-        $regions = array(
-            'Africa' => \DateTimeZone::AFRICA,
-            'America' => \DateTimeZone::AMERICA,
+        $structure = [];
+        $regions = [
+            'Africa'     => \DateTimeZone::AFRICA,
+            'America'    => \DateTimeZone::AMERICA,
             'Antarctica' => \DateTimeZone::ANTARCTICA,
-            'Asia' => \DateTimeZone::ASIA,
-            'Atlantic' => \DateTimeZone::ATLANTIC,
-            'Europe' => \DateTimeZone::EUROPE,
-            'Indian' => \DateTimeZone::INDIAN,
-            'Pacific' => \DateTimeZone::PACIFIC
-        );
+            'Asia'       => \DateTimeZone::ASIA,
+            'Atlantic'   => \DateTimeZone::ATLANTIC,
+            'Europe'     => \DateTimeZone::EUROPE,
+            'Indian'     => \DateTimeZone::INDIAN,
+            'Pacific'    => \DateTimeZone::PACIFIC,
+        ];
         foreach ($regions as $region) {
             $zones = \DateTimeZone::listIdentifiers($region);
             $zones = self::prepareZones($zones);
@@ -265,7 +341,7 @@ class User extends ActiveRecord implements IdentityInterface
                         $city = $city . '/' . $subcity;
                     }
                 }
-                $structure[$continent][$timeZone] = '(GMT '.$p.') '.$city;
+                $structure[$continent][$timeZone] = '(GMT ' . $p . ') ' . $city;
             }
         }
         return $structure;
@@ -273,32 +349,34 @@ class User extends ActiveRecord implements IdentityInterface
 
     /**
      * Prepackages all the timezones in separated parts
+     *
      * @param array $timeZones
+     *
      * @return array $zones Prepackaged array
      */
     private static function prepareZones(array $timeZones)
     {
-        $list = array();
+        $list = [];
         foreach ($timeZones as $zone) {
-            $time = new \DateTime(NULL, new \DateTimeZone($zone));
+            $time = new \DateTime(null, new \DateTimeZone($zone));
             $p = $time->format('P');
             if ($p > 13) {
                 continue;
             }
             $parts = explode('/', $zone);
 
-            $list[$time->format('P')][] = array(
+            $list[$time->format('P')][] = [
                 'time_zone' => $zone,
                 'continent' => isset($parts[0]) ? $parts[0] : '',
-                'city' => isset($parts[1]) ? $parts[1] : '',
-                'subcity' => isset($parts[2]) ? $parts[2] : '',
-                'p' => $p,
-            );
+                'city'      => isset($parts[1]) ? $parts[1] : '',
+                'subcity'   => isset($parts[2]) ? $parts[2] : '',
+                'p'         => $p,
+            ];
         }
 
         ksort($list, SORT_NUMERIC);
 
-        $zones = array();
+        $zones = [];
         foreach ($list as $grouped) {
             $zones = array_merge($zones, $grouped);
         }
@@ -308,17 +386,19 @@ class User extends ActiveRecord implements IdentityInterface
 
     /**
      * Finds all user where 'id' IN (string).
-     * @param $author_IDs| String contains all user ID's
+     *
+     * @param $author_IDs | String contains all user ID's
+     *
      * @return array|\yii\db\ActiveRecord[] Returns an array contains info about all user
      */
-    public function findByAuthorIDs ($author_IDs)
+    public function findByAuthorIDs($author_IDs)
     {
-        if($author_IDs) {
+        if ($author_IDs) {
             $query = User::find()
-                ->select('id, username')
-                ->where('id IN(' . $author_IDs . ')')
-                ->asArray()
-                ->all();
+                         ->select('id, username')
+                         ->where('id IN(' . $author_IDs . ')')
+                         ->asArray()
+                         ->all();
             return $query;
         } else {
             return false;
@@ -327,15 +407,20 @@ class User extends ActiveRecord implements IdentityInterface
 
     /**
      * Finds identity by user id, his status must be active
+     *
      * @inheritdoc
      */
     public static function findIdentity($id)
     {
-        return static::findOne(['id' => $id, 'status' => self::STATUS_ACTIVE]);
+        return static::findOne([
+            'id'     => $id,
+            'status' => self::STATUS_ACTIVE,
+        ]);
     }
 
     /**
      * Find identity by access token is not must be implemented
+     *
      * @inheritdoc
      */
     public static function findIdentityByAccessToken($token, $type = null)
@@ -345,17 +430,24 @@ class User extends ActiveRecord implements IdentityInterface
 
     /**
      * Finds user by username, his status must be active
+     *
      * @param string $username
+     *
      * @return static|null
      */
     public static function findByUsername($username)
     {
-        return static::findOne(['username' => $username, 'status' => self::STATUS_ACTIVE]);
+        return static::findOne([
+            'username' => $username,
+            'status'   => self::STATUS_ACTIVE,
+        ]);
     }
 
     /**
      * Finds user by password reset token
+     *
      * @param string $token password reset token
+     *
      * @return static|null
      */
     public static function findByPasswordResetToken($token)
@@ -366,13 +458,15 @@ class User extends ActiveRecord implements IdentityInterface
 
         return static::findOne([
             'password_reset_token' => $token,
-            'status' => self::STATUS_ACTIVE,
+            'status'               => self::STATUS_ACTIVE,
         ]);
     }
 
     /**
      * Finds out if password reset token is valid
+     *
      * @param string $token password reset token
+     *
      * @return boolean
      */
     public static function isPasswordResetTokenValid($token)
@@ -381,13 +475,14 @@ class User extends ActiveRecord implements IdentityInterface
             return false;
         }
 
-        $timestamp = (int) substr($token, strrpos($token, '_') + 1);
+        $timestamp = (int)substr($token, strrpos($token, '_') + 1);
         $expire = Yii::$app->params['user.passwordResetTokenExpire'];
         return $timestamp + $expire >= time();
     }
 
     /**
      * Sets $user->show_email property
+     *
      * @param string $mode True or false
      */
     public function setShowEmailProperty($mode = 0)
@@ -423,6 +518,7 @@ class User extends ActiveRecord implements IdentityInterface
      * Validates password by his hash
      *
      * @param string $password password to validate
+     *
      * @return boolean if password provided is valid for current user
      */
     public function validatePassword($password)
@@ -466,14 +562,15 @@ class User extends ActiveRecord implements IdentityInterface
 
     /**
      * Do transaction which saves a model
+     *
      * @param $model
+     *
      * @return bool true if a transaction is successful
      */
     public function saveUser($model)
     {
         $transaction = Yii::$app->db->beginTransaction();
-        if($model->save())
-        {
+        if ($model->save()) {
             $transaction->commit();
             return true;
         } else {
@@ -484,14 +581,15 @@ class User extends ActiveRecord implements IdentityInterface
 
     /**
      * Do transaction which deletes a model
+     *
      * @param $model
+     *
      * @return bool true if a transaction is successful
      */
     public function deleteUser($model)
     {
         $transaction = Yii::$app->db->beginTransaction();
-        if($model->delete())
-        {
+        if ($model->delete()) {
             $transaction->commit();
             return true;
         } else {
@@ -502,11 +600,11 @@ class User extends ActiveRecord implements IdentityInterface
 
     /**
      * Checks user privilegies for update/delete user or own user info
+     *
      * @return bool
      */
     public function checkUDPrivilegies($user)
     {
-        return ((Yii::$app->user->can('updateOwnUser', ['user' => $user]) || Yii::$app->user->can('updateUser'))
-            && (Yii::$app->user->can('deleteOwnUser', ['user' => $user]) || Yii::$app->user->can('deleteUser')));
+        return ((Yii::$app->user->can('updateOwnUser', ['user' => $user]) || Yii::$app->user->can('updateUser')) && (Yii::$app->user->can('deleteOwnUser', ['user' => $user]) || Yii::$app->user->can('deleteUser')));
     }
 }
