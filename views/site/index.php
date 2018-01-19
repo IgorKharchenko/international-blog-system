@@ -4,10 +4,13 @@ use yii\helpers\Html;
 use app\models\Blog;
 use yii\widgets\Pjax;
 use yii\bootstrap\Carousel;
+
 /* @var $this yii\web\View */
 
-$this->title = 'My Yii Application';
+$this->title = 'International Blog System';
 ?>
+
+
 <div class="site-index">
     <div class="jumbotron">
         <h1 align="center">International Blog System</h1>
@@ -16,12 +19,16 @@ $this->title = 'My Yii Application';
 
         <p>
             <?php
-            if(Yii::$app->user->isGuest)
+            if (Yii::$app->user->isGuest) {
                 echo Html::a('Let\'s get started with us!', ['site/signup'], ['class' => 'btn btn-primary']);
-            else if(Blog::getBlogByAuthorId(Yii::$app->user->id) == NULL)
+            } else if (Blog::getBlogByAuthorId(Yii::$app->user->id) == null) {
                 echo Html::a('Let\'s create your first blog!', ['blog/create'], ['class' => 'btn btn-success']);
-            else
-                echo Html::a('Let\'s go in your blog!', ['post/index', 'blog_id' => Blog::getBlogByAuthorId(Yii::$app->user->id)->id], ['class' => 'btn btn-success']);
+            } else {
+                echo Html::a('Let\'s go in your blog!', [
+                    'post/index',
+                    'blog_id' => Blog::getBlogByAuthorId(Yii::$app->user->id)->id,
+                ], ['class' => 'btn btn-success']);
+            }
             ?>
         </p>
     </div>
