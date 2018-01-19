@@ -2,8 +2,6 @@
 
 use yii\helpers\Html;
 use app\models\Blog;
-use yii\widgets\Pjax;
-use yii\bootstrap\Carousel;
 
 /* @var $this yii\web\View */
 
