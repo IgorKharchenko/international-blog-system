@@ -14,7 +14,10 @@ use dosamigos\ckeditor\CKEditor;
 
     <?php $form = ActiveForm::begin(); ?>
 
-    <?= $form->field($model, 'title')->textInput(['maxlength' => true]) ?>
+    <?= $form->field($model, 'title')->textInput([
+        'maxlength' => true,
+        'placeholder' => 'Title of comment.',
+    ]) ?>
 
     <!-- I use iMacros for spawning big amount of info,
         and it doesn't write any info in the CKEditor widget;

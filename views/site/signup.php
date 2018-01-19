@@ -8,7 +8,6 @@ use app\models\User;
 /* @var $form yii\bootstrap\ActiveForm */
 /* @var $model \app\models\SignupForm */
 
-
 $this->title = 'Signup';
 $this->params['breadcrumbs'][] = $this->title;
 ?>
@@ -21,26 +20,38 @@ $this->params['breadcrumbs'][] = $this->title;
         <div class="col-lg-5">
             <?php $form = ActiveForm::begin(['id' => 'form-signup']); ?>
 
-                <?= $form->field($model, 'username')->textInput(['autofocus' => true]) ?>
+            <?= $form->field($model, 'username')->textInput([
+                'autofocus'   => true,
+                'placeholder' => 'Your nickname. This nickname will be used during login on our site.',
+            ]) ?>
 
-                <?= $form->field($model, 'email') ?>
+            <?= $form->field($model, 'email')->textInput([
+                'placeholder' => 'Your e-mail address.',
+            ]) ?>
 
-                <?= $form->field($model, 'password')->passwordInput() ?>
+            <?= $form->field($model, 'password')->passwordInput([
+                'placeholder' => 'Your password.',
+            ]) ?>
 
             <hr/>
 
             <?php $user = new User; ?>
 
-            <?= $form->field($model, 'timezone')->dropDownList($timeZonesList,
-                ['prompt' => '(GMT +03:00) Moscow', 'timezone' => 'Europe/Moscow'],
-                ['options' =>
-                    [
-                        'Europe/Moscow' => ['selected' => true]
-                    ],
-                ]) ?>
+            <?= $form->field($model, 'timezone')
+                     ->dropDownList($timeZonesList, [
+                             'prompt'   => '(GMT +03:00) Moscow',
+                             'timezone' => 'Europe/Moscow',
+                         ], [
+                             'options' => [
+                                 'Europe/Moscow' => ['selected' => true],
+                             ],
+                         ]) ?>
 
             <div class="form-group">
-                <?= Html::submitButton('Signup', ['class' => 'btn btn-primary', 'name' => 'signup-button']) ?>
+                <?= Html::submitButton('Signup', [
+                    'class' => 'btn btn-primary',
+                    'name'  => 'signup-button',
+                ]) ?>
             </div>
 
             <?php ActiveForm::end(); ?>

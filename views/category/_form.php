@@ -12,12 +12,12 @@ use yii\widgets\ActiveForm;
 
     <?php $form = ActiveForm::begin(); ?>
     <?= $form->field($model, 'name')->textInput([
-            'maxlength'   => true,
-            'placeholder' => 'Name of category.',
+        'maxlength'   => true,
+        'placeholder' => 'Name of category.',
     ]) ?>
     <?= $form->field($model, 'title')->textInput([
-            'maxlength' => true,
-            'placeholder' => 'Title of category.',
+        'maxlength'   => true,
+        'placeholder' => 'Title of category.',
     ]) ?>
     <h5>Title of the category can contain any information about the category.</h5>
 

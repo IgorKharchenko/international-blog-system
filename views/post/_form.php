@@ -16,21 +16,31 @@ use dosamigos\ckeditor\CKEditor;
 
     <?php $form = ActiveForm::begin(); ?>
 
-    <?= $form->field($model, 'title')->textInput(['maxlength' => true]) ?>
-
-    <?= $form->field($model, 'anons')->textInput(['maxlength' => true]) ?>
-
-    <?= $form->field($model, 'content')->widget(CKEditor::className(), [
-        'options' => ['rows' => 8, 'columns' => 10],
-        'preset' => 'basic',
+    <?= $form->field($model, 'title')->textInput([
+        'maxlength'   => true,
+        'placeholder' => 'Title of the post.',
     ]) ?>
 
-    <?php $model->categories_selection = explode(',', $model->categories); ?>
-    <?= $form->field($model, 'categories_selection')->ListBox($model->createArrayForCategoriesSelection(),
-        ['multiple' => true]
-    ) ?>
+    <?= $form->field($model, 'anons')->textInput([
+        'maxlength'   => true,
+        'placeholder' => 'Anons of the post.',
+    ]) ?>
 
-    <?= $form->field($model, 'publish_status')->dropDownList([ 'draft' => 'Draft', 'publish' => 'Publish', ]) ?>
+    <?= $form->field($model, 'content')->widget(CKEditor::className(), [
+        'options' => [
+            'rows'    => 8,
+            'columns' => 10,
+        ],
+        'preset'  => 'basic',
+    ]) ?>
+
+    <?= $form->field($model, 'categories_selection')
+             ->ListBox($model->createArrayForCategoriesSelection(), ['multiple' => true]) ?>
+
+    <?= $form->field($model, 'publish_status')->dropDownList([
+        'draft'   => 'Draft',
+        'publish' => 'Publish',
+    ]) ?>
 
     <div class="form-group">
         <?= Html::submitButton($model->isNewRecord ? 'Create' : 'Update', ['class' => $model->isNewRecord ? 'btn btn-success' : 'btn btn-primary']) ?>

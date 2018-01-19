@@ -21,7 +21,6 @@ $this->params['breadcrumbs'][] = $this->title;
         'dataProvider' => $dataProvider,
         'emptyText' => '<h4>Oops, nothing to show now! Maybe it\'s a time to create some categories?</h4>',
         'columns' => [
-            ['class' => 'yii\grid\SerialColumn'],
             'name',
             'title',
             ['class' => 'yii\grid\ActionColumn', 'template' => '{update} {delete}'],

@@ -2,12 +2,18 @@
 
 use yii\helpers\Html;
 
-
-/* @var $this yii\web\View */
-/* @var $model app\models\Category */
+/* @var $this   yii\web\View */
+/* @var $model  app\models\Category */
+/* @var $blogId int */
 
 $this->title = 'Create Category';
-$this->params['breadcrumbs'][] = ['label' => 'Categories', 'url' => ['index']];
+$this->params['breadcrumbs'][] = [
+    'label' => 'Categories',
+    'url'   => [
+        'index',
+        'blog_id' => $blogId,
+    ],
+];
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 <div class="category-create">
