@@ -20,7 +20,7 @@ For assign first admin, you need run the command `yii rbac/init-first-admin [id]
 Installation
 ============
 
-1. Import database dump (`database_dump.sql`) and set database name in `config/web.php` file.
+1. Import database dump (`database_dump.sql`) and set database name in `config/db.php` file.
 
 2. Install vendor packages:
 ```bash
