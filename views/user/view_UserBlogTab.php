@@ -5,8 +5,10 @@ use yii\widgets\DetailView;
 use yii\widgets\Pjax;
 use yii\bootstrap\Tabs;
 
-/* @var $this yii\web\View */
-/* @var $model app\models\User */
+/* @var $this           yii\web\View */
+/* @var $model          app\models\User */
+/* @var $blog           app\models\Blog */
+/* @var $canUserSeeBlog bool */
 ?>
 <div class="view-MainInfoTab">
     <?php if (($blog) && ($blog->is_private == 0)): ?>
@@ -19,7 +21,7 @@ use yii\bootstrap\Tabs;
         ], ['class' => 'btn-lg btn-info']); ?>
         <br/><br/>
     <?php endif; ?>
-    <?php if ((!$blog) || ($blog->is_private == 1)): ?>
+    <?php if ((!$blog) || !$canUserSeeBlog): ?>
         <h4>This user <b>don't have</b> our blog <b>at this time</b> or user blog is <b>private</b>.
         </h4>
     <?php endif; ?>

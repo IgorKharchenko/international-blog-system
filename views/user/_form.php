@@ -17,15 +17,24 @@ use dosamigos\ckeditor\CKEditor;
 
     <?php $form = ActiveForm::begin(); ?>
 
-    <?= $form->field($model, 'username')->textInput(['maxlength' => true]) ?>
+    <?= $form->field($model, 'username')->textInput([
+            'maxlength'  => true,
+            'placeholder' => 'Your nickname. This nickname will be used for login.',
+    ]) ?>
 
-    <?= $form->field($model, 'email')->textInput(['maxlength' => true]) ?>
+    <?= $form->field($model, 'email')->textInput([
+            'maxlength' => true,
+            'placeholder' => 'Your e-mail address.',
+    ]) ?>
 
     <?= $form->field($model, 'show_email')->checkbox(['checked ' => ($model->show_email == 1) ? true : false]) ?>
 
     <hr/>
 
-    <?= $form->field($model, 'full_name')->textInput(['maxlength' => true]) ?>
+    <?= $form->field($model, 'full_name')->textInput([
+            'maxlength' => true,
+            'placeholder' => 'Your full name.',
+    ]) ?>
 
     <?= $form->field($model, 'sex')->dropDownList(['Not Set' => 'Not Set', 'Male' => 'Male', 'Female' => 'Female']) ?>
 
@@ -33,11 +42,14 @@ use dosamigos\ckeditor\CKEditor;
         ArrayHelper::map(EarthCountries::getCountriesList(), 'id', 'name_en'),
         [
             'label' => 'Country',
-            'prompt' => 'Choose Country',
+            'prompt' => 'Choose your country',
         ]
     ); ?>
 
-    <?= $form->field($model, 'city')->textInput(['maxlength' => true]) ?>
+    <?= $form->field($model, 'city')->textInput([
+            'maxlength' => true,
+            'placeholder' => 'City where you live.',
+    ]) ?>
 
     <?= $form->field($model, 'about')->widget(CKEditor::className(), [
         'options' => ['rows' => 6],

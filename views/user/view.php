@@ -6,8 +6,10 @@ use yii\widgets\Pjax;
 use yii\bootstrap\Tabs;
 use yii\bootstrap\Modal;
 
-/* @var $this yii\web\View */
-/* @var $model app\models\User */
+/* @var $this           yii\web\View */
+/* @var $model          app\models\User */
+/* @var $blog           app\models\Blog */
+/* @var $canUserSeeBlog bool */
 
 $this->title = 'Info about user ' . $model->username;
 $this->params['breadcrumbs'][] = $model->username;
@@ -15,71 +17,81 @@ $this->params['breadcrumbs'][] = $model->username;
 <?php Pjax::begin(); ?>
 <div class="users-view">
     <!-- Blog Created modal window -->
-    <?php if(isset($_GET['blog']) && $_GET['blog'] === 'created'): ?>
+    <?php if (isset($_GET['blog']) && $_GET['blog'] === 'created'): ?>
         <?php Modal::begin([
-            'clientOptions' => ['show' => true]
+            'clientOptions' => ['show' => true],
         ]); ?>
-            <?= $this->render('view_BlogCreatedModal',['model' => $model]); ?>
+        <?= $this->render('view_BlogCreatedModal', ['model' => $model]); ?>
         <?php Modal::end(); ?>
     <?php endif; ?>
     <!-- End Blog Created modal window -->
 
     <!-- Error Modal Window -->
-    <?php if(isset($_GET['error'])): ?>
+    <?php if (isset($_GET['error'])): ?>
         <?php Modal::begin([
-            'clientOptions' => ['show' => true]
+            'clientOptions' => ['show' => true],
         ]); ?>
-        <?= $this->render('view_ErrorMessageModal',['error' => $_GET['error']]); ?>
+        <?= $this->render('view_ErrorMessageModal', ['error' => $_GET['error']]); ?>
         <?php Modal::end(); ?>
     <?php endif; ?>
     <!-- End Error Modal Window -->
 
     <!-- Gravatar -->
     <?= \cebe\gravatar\Gravatar::widget([
-        'email' => $model->email,
+        'email'   => $model->email,
         'options' => [
             'alt' => $model->username,
         ],
-        'size' => 150,
+        'size'    => 150,
     ]) ?>
     <!-- End Gravatar -->
     <h1>User Page</h1>
 
     <!-- Tabs -->
     <?php
-        echo Tabs::widget([
+    echo Tabs::widget([
         'items' => [
             [
-                'label' => 'Main Info',
+                'label'   => 'Main Info',
                 'content' => $this->render('view_MainInfoTab', ['model' => $model]),
             ],
             [
-                'label' => 'Additional Info',
+                'label'   => 'Additional Info',
                 'content' => $this->render('view_AdditionalInfoTab', ['model' => $model]),
             ],
             [
-                'label' => 'User Blog',
-                'content' => $this->render('view_UserBlogTab', ['model' => $model, 'blog' => $blog]),
-            ]
+                'label'   => 'User Blog',
+                'content' => $this->render('view_UserBlogTab', [
+                    'model'          => $model,
+                    'blog'           => $blog,
+                    'canUserSeeBlog' => $canUserSeeBlog,
+                ]),
+            ],
         ],
     ]); ?>
     <!--  End Tabs -->
 
-    <?php if($model->checkUDPrivilegies($model)): ?>
+    <?php if ($model->checkUDPrivilegies($model)): ?>
         <hr/>
 
         <!-- Update User Info Button -->
-        <?= Html::a('Update User Info', ['user/update', 'id' => $model->id], ['class' => 'btn-lg btn-info']); ?>
+        <?= Html::a('Update User Info', [
+            'user/update',
+            'id' => $model->id,
+        ], ['class' => 'btn-lg btn-info']); ?>
         <!-- End Button -->
 
         <br/><br/>
 
         <!-- Delete User Button -->
-        <?= Html::a('Delete user', ['user/delete', 'id' => $model->id], [
+        <?= Html::a('Delete user', [
+            'user/delete',
+            'id' => $model->id,
+        ], [
             'class' => 'btn-xs btn-danger',
-            'data' => [
+            'data'  => [
                 'confirm' => 'Are you sure you want to delete your own page?',
-                'method' => 'post',
+                'method'  => 'post',
             ],
         ]); ?>
         <!-- End Button -->

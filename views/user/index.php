@@ -23,8 +23,8 @@ $this->params['breadcrumbs'][] = $this->title;
     <?= GridView::widget([
         'dataProvider' => $dataProvider,
         'columns' => [
-            ['class' => 'yii\grid\SerialColumn'],
              'username',
+             'full_name',
              ['label' => 'Country', 'value' => function($data) {
                  return \app\models\EarthCountries::getCountryNameById($data->country_id);
              }],
