@@ -16,3 +16,13 @@ To init GMT +0000 server timezone you need to run the command `yii site/init-gre
 
 Also the blog contains admin privilegies assignment page that available for admins. 
 For assign first admin, you need run the command `yii rbac/init-first-admin [id]`, where id(without brackets) is an user ID.
+
+Installation
+============
+
+1. Import database dump (`database_dump.sql`) and set database name in `config/web.php` file.
+
+2. Install vendor packages:
+```bash
+composer install && composer update
+```
